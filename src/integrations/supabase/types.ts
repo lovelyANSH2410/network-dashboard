@@ -171,7 +171,7 @@ export type Database = {
           program?: string | null
           skills?: string[] | null
           status?: Database["public"]["Enums"]["profile_status"] | null
-          website_url?: string | null
+          website_url?: never
         }
         Update: {
           avatar_url?: string | null
@@ -198,7 +198,7 @@ export type Database = {
           program?: string | null
           skills?: string[] | null
           status?: Database["public"]["Enums"]["profile_status"] | null
-          website_url?: string | null
+          website_url?: never
         }
         Relationships: []
       }
