@@ -115,12 +115,14 @@ const handler = async (req: Request): Promise<Response> => {
     } else {
       // For sign in, find existing user
       const { data: users } = await supabase.auth.admin.listUsers();
-      const existingUser = users.users?.find(user => 
-        email ? user.email === email : user.phone === phone
-      );
+      const existingUser = users.users?.find(user => {
+        if (email && user.email === email) return true;
+        if (phone && user.phone === phone) return true;
+        return false;
+      });
 
       if (!existingUser) {
-        console.error("User not found");
+        console.error(`User not found for ${email || phone}`);
         return new Response(
           JSON.stringify({ error: "User not found. Please sign up first." }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -131,9 +133,18 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Generate session token for the user
+    const userEmail = email || authResult.data.user?.email;
+    if (!userEmail && !phone) {
+      console.error("No email or phone available for session generation");
+      return new Response(
+        JSON.stringify({ error: "Unable to create session - missing contact information" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
-      email: email || authResult.data.user?.email || '',
+      email: userEmail || '',
       options: {
         redirectTo: `${req.headers.get('origin') || 'http://localhost:3000'}/`
       }
