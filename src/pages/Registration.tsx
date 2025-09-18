@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import Header from '@/components/Header';
 
 export default function Registration() {
   const { user, refreshUserData } = useAuth();
@@ -23,8 +24,6 @@ export default function Registration() {
     phone: '',
     address: '',
     date_of_birth: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
     city: '',
     country: '',
     organization: '',
@@ -40,8 +39,39 @@ export default function Registration() {
     website_url: ''
   });
 
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    // Email validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (user?.email && !emailPattern.test(user.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Indian mobile number validation (+91 followed by 10 digits)
+    const phonePattern = /^(\+91|91)?[6-9]\d{9}$/;
+    if (formData.phone && !phonePattern.test(formData.phone.replace(/\s+/g, ''))) {
+      newErrors.phone = 'Please enter a valid Indian mobile number (+91XXXXXXXXXX)';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the form",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -56,8 +86,6 @@ export default function Registration() {
           phone: formData.phone,
           address: formData.address,
           date_of_birth: formData.date_of_birth || null,
-          emergency_contact_name: formData.emergency_contact_name,
-          emergency_contact_phone: formData.emergency_contact_phone,
           city: formData.city,
           country: formData.country,
           organization: formData.organization,
@@ -97,15 +125,18 @@ export default function Registration() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Complete Your Registration</CardTitle>
-            <CardDescription>
-              Please fill in your complete profile details. Your registration will be reviewed by an administrator.
-            </CardDescription>
-          </CardHeader>
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <div className="p-4">
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Complete Your Registration</CardTitle>
+              <CardDescription>
+                Please fill in your complete profile details. Your registration will be reviewed by an administrator.
+              </CardDescription>
+            </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Personal Information */}
@@ -134,14 +165,19 @@ export default function Registration() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Label htmlFor="phone">Phone Number * (Indian Mobile)</Label>
                     <Input
                       id="phone"
                       type="tel"
+                      placeholder="+91XXXXXXXXXX"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       required
+                      className={errors.phone ? 'border-red-500' : ''}
                     />
+                    {errors.phone && (
+                      <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="date_of_birth">Date of Birth</Label>
@@ -184,31 +220,6 @@ export default function Registration() {
                 </div>
               </div>
 
-              {/* Emergency Contact */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Emergency Contact</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="emergency_contact_name">Emergency Contact Name *</Label>
-                    <Input
-                      id="emergency_contact_name"
-                      value={formData.emergency_contact_name}
-                      onChange={(e) => setFormData({...formData, emergency_contact_name: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="emergency_contact_phone">Emergency Contact Phone *</Label>
-                    <Input
-                      id="emergency_contact_phone"
-                      type="tel"
-                      value={formData.emergency_contact_phone}
-                      onChange={(e) => setFormData({...formData, emergency_contact_phone: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
 
               {/* Professional Information */}
               <div className="space-y-4">
@@ -360,6 +371,7 @@ export default function Registration() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   );
 }

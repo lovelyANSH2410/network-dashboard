@@ -12,11 +12,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
 import { Users, Clock, CheckCircle, XCircle, Eye, User } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
+import Header from '@/components/Header';
 
 type ProfileWithApproval = Tables<'profiles'>;
 
 export default function AdminDashboard() {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<ProfileWithApproval[]>([]);
   const [loading, setLoading] = useState(true);
@@ -336,24 +337,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center space-x-2">
-            <User className="h-6 w-6" />
-            <h1 className="text-xl font-semibold">Admin Dashboard</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">
-              Welcome, {user?.email}
-            </span>
-            <Button variant="outline" onClick={signOut}>
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header showUserInfo={true} showSignOut={true} />
 
-      <main className="p-6">
+      <main className="p-6 max-w-6xl mx-auto">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card>

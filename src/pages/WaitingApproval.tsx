@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Header from '@/components/Header';
 
 export default function WaitingApproval() {
   const { user, refreshUserData, signOut } = useAuth();
@@ -48,7 +49,10 @@ export default function WaitingApproval() {
   const statusInfo = getStatusMessage();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <div className="flex items-center justify-center p-4 pt-20">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -88,13 +92,8 @@ export default function WaitingApproval() {
 
           {user?.approvalStatus === 'rejected' && (
             <div className="space-y-2">
-              <Link to="/registration">
-                <Button variant="outline" className="w-full">
-                  Update Registration
-                </Button>
-              </Link>
-              <p className="text-xs text-muted-foreground text-center">
-                You can update your registration and resubmit for review.
+              <p className="text-sm text-center text-muted-foreground">
+                Please contact our support team for further assistance.
               </p>
             </div>
           )}
@@ -110,6 +109,7 @@ export default function WaitingApproval() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

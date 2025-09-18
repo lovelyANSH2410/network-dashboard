@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, MapPin, Building, Calendar, Edit } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { User, Mail, Phone, MapPin, Building, Calendar, Edit, Users } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
+import Header from '@/components/Header';
+import MemberDirectory from '@/components/MemberDirectory';
 
 export default function UserDashboard() {
-  const { user, isApproved, signOut } = useAuth();
+  const { user, isApproved } = useAuth();
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Redirect if not approved
   if (!isApproved) {
@@ -17,25 +22,22 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center space-x-2">
-            <User className="h-6 w-6" />
-            <h1 className="text-xl font-semibold">Dashboard</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">
-              Welcome, {profile?.first_name} {profile?.last_name}
-            </span>
-            <Button variant="outline" onClick={signOut}>
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header showUserInfo={true} showSignOut={true} />
 
-      <main className="p-6 max-w-4xl mx-auto">
-        <div className="space-y-6">
+      <main className="p-6 max-w-6xl mx-auto">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="members" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Members
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6">
           {/* Profile Status */}
           <Card>
             <CardHeader>
@@ -204,7 +206,20 @@ export default function UserDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="members">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">IIM-AMS Members Directory</h2>
+                <p className="text-muted-foreground">
+                  Connect with fellow alumni and expand your professional network.
+                </p>
+              </div>
+              <MemberDirectory />
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
