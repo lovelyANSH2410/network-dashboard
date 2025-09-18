@@ -1,50 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
-const Auth = () => {
+export default function Auth() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user, signIn, signUp } = useAuth();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("sign-in");
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("signin");
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        navigate("/");
-      }
-    };
-
-    checkUser();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          navigate("/");
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    // Redirect if already authenticated
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!email || !password) {
       toast({
         title: "Error",
@@ -55,25 +42,26 @@ const Auth = () => {
     }
 
     setLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await signIn(email, password);
 
       if (error) {
-        throw error;
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Signed in successfully",
+        });
       }
-
-      toast({
-        title: "Welcome back!",
-        description: "You have been signed in successfully.",
-      });
     } catch (error: any) {
-      console.error("Sign in error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to sign in",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -83,7 +71,8 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !firstName || !lastName) {
+    
+    if (!email || !password || !confirmPassword || !firstName || !lastName) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -104,44 +93,46 @@ const Auth = () => {
     if (password.length < 6) {
       toast({
         title: "Error",
-        description: "Password must be at least 6 characters",
+        description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
+    
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        },
+      const { error } = await signUp(email, password, {
+        first_name: firstName,
+        last_name: lastName,
       });
 
       if (error) {
-        throw error;
+        if (error.message.includes("already registered")) {
+          toast({
+            title: "Account exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+          setActiveTab("signin");
+        } else {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account. After verification, you'll be redirected to complete your profile.",
+        });
+        setActiveTab("signin");
       }
-
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
-      });
-      
-      // Switch to sign in tab
-      setActiveTab("sign-in");
     } catch (error: any) {
-      console.error("Sign up error:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create account",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -161,11 +152,11 @@ const Auth = () => {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="sign-in">Sign In</TabsTrigger>
-              <TabsTrigger value="sign-up">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="sign-in">
+            <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
                   <Label htmlFor="email">Email</Label>
@@ -200,7 +191,7 @@ const Auth = () => {
               </form>
             </TabsContent>
 
-            <TabsContent value="sign-up">
+            <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -269,6 +260,4 @@ const Auth = () => {
       </Card>
     </div>
   );
-};
-
-export default Auth;
+}
