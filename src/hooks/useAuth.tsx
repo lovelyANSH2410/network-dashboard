@@ -138,30 +138,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithOtp = async (emailOrPhone: string, isPhone: boolean = false) => {
-    const options = isPhone 
-      ? { phone: emailOrPhone }
-      : { email: emailOrPhone };
-    
-    const { error } = await supabase.auth.signInWithOtp(options);
-    return { error };
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: {
+          email: isPhone ? undefined : emailOrPhone,
+          phone: isPhone ? emailOrPhone : undefined,
+          isSignUp: false
+        }
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      return { error };
+    }
   };
 
   const verifyOtp = async (emailOrPhone: string, token: string, isPhone: boolean = false) => {
-    const options = isPhone 
-      ? { phone: emailOrPhone, token, type: 'sms' as const }
-      : { email: emailOrPhone, token, type: 'email' as const };
-    
-    const { error } = await supabase.auth.verifyOtp(options);
-    return { error };
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-otp', {
+        body: {
+          email: isPhone ? undefined : emailOrPhone,
+          phone: isPhone ? emailOrPhone : undefined,
+          otp: token,
+          isSignUp: false
+        }
+      });
+
+      if (error) throw error;
+      
+      // The edge function handles session creation
+      // Force refresh auth state
+      await supabase.auth.refreshSession();
+      return { error: null };
+    } catch (error: any) {
+      return { error };
+    }
   };
 
   const signUp = async (emailOrPhone: string, userData: any = {}, isPhone: boolean = false) => {
-    const options = isPhone 
-      ? { phone: emailOrPhone, options: { data: userData } }
-      : { email: emailOrPhone, options: { emailRedirectTo: `${window.location.origin}/`, data: userData } };
-    
-    const { error } = await supabase.auth.signInWithOtp(options);
-    return { error };
+    try {
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: {
+          email: isPhone ? undefined : emailOrPhone,
+          phone: isPhone ? emailOrPhone : undefined,
+          isSignUp: true,
+          userData
+        }
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      return { error };
+    }
   };
 
   const signOut = async () => {

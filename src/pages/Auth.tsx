@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -110,19 +111,30 @@ export default function Auth() {
     setLoading(true);
     
     try {
-      const { error } = await verifyOtp(contact, otp, isPhone);
+      if (activeTab === "signup") {
+        // For signup, we call our custom verify function directly
+        const response = await supabase.functions.invoke('verify-otp', {
+          body: {
+            email: isPhone ? undefined : contact,
+            phone: isPhone ? contact : undefined,
+            otp,
+            isSignUp: true,
+            userData: {
+              first_name: firstName,
+              last_name: lastName,
+            }
+          }
+        });
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (response.error) {
+          throw response.error;
+        }
       } else {
-        toast({
-          title: "Success",
-          description: "Signed in successfully",
-        });
+        // For signin, use the auth hook
+        const { error } = await verifyOtp(contact, otp, isPhone);
+        if (error) {
+          throw error;
+        }
       }
     } catch (error: any) {
       toast({
@@ -188,10 +200,18 @@ export default function Auth() {
         });
         setStep("otp");
       }
+      
+      toast({
+        title: "Success",
+        description: activeTab === "signup" ? "Account created successfully" : "Signed in successfully",
+      });
+      
+      // Force refresh the auth state
+      window.location.reload();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
