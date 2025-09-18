@@ -52,9 +52,11 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Generated OTP: ${otpCode} for ${email || phone}`);
 
     // For sign up, check if user already exists
-    if (isSignUp && email) {
-      const { data: existingUser } = await supabase.auth.admin.listUsers();
-      const userExists = existingUser.users?.some(user => user.email === email);
+    if (isSignUp) {
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const userExists = existingUsers.users?.some(user => 
+        email ? user.email === email : user.phone === phone
+      );
       if (userExists) {
         return new Response(
           JSON.stringify({ error: "User already exists. Please sign in instead." }),
@@ -151,11 +153,50 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // For phone numbers, you would integrate with SMS service here
-    // For now, we'll just log it
+    // Send SMS via MSG91
     if (phone) {
-      console.log(`SMS OTP would be sent to ${phone}: ${otpCode}`);
-      // TODO: Integrate with SMS service like Twilio
+      const msg91ApiKey = Deno.env.get("MSG91_API_KEY");
+      if (!msg91ApiKey) {
+        console.error("MSG91_API_KEY not configured");
+        return new Response(
+          JSON.stringify({ error: "SMS service not configured" }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
+      try {
+        const smsResponse = await fetch("https://api.msg91.com/api/v5/otp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "authkey": msg91ApiKey
+          },
+          body: JSON.stringify({
+            template_id: "YOUR_TEMPLATE_ID", // You'll need to replace this with your actual MSG91 template ID
+            mobile: phone.replace(/^\+/, ""), // Remove + prefix if present
+            authkey: msg91ApiKey,
+            otp: otpCode,
+            otp_expiry: 10 // 10 minutes
+          })
+        });
+
+        const smsResult = await smsResponse.json();
+        console.log("SMS response:", smsResult);
+
+        if (!smsResponse.ok) {
+          console.error("Error sending SMS:", smsResult);
+          return new Response(
+            JSON.stringify({ error: "Failed to send SMS verification code" }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+      } catch (error) {
+        console.error("SMS sending error:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to send SMS verification code" }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
     }
 
     return new Response(

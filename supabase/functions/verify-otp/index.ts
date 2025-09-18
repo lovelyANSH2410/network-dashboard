@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Verifying OTP: ${otp} for ${email || phone}`);
 
     // Find and verify OTP
-    const { data: otpRecord, error: otpError } = await supabase
+    const { data: otpRecords, error: otpError } = await supabase
       .from("otp_codes")
       .select("*")
       .eq(email ? "email" : "phone", email || phone)
@@ -58,8 +58,9 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("verified", false)
       .gte("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+      .limit(1);
+
+    const otpRecord = otpRecords?.[0];
 
     if (otpError || !otpRecord) {
       console.error("OTP verification failed:", otpError);
