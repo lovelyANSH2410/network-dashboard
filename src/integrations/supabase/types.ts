@@ -220,6 +220,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_user_approved: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       reject_user_profile: {
         Args: { profile_user_id: string; reason?: string }
         Returns: undefined
