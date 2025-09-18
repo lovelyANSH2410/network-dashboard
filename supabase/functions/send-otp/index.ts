@@ -53,8 +53,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // For sign up, check if user already exists
     if (isSignUp && email) {
-      const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
-      if (existingUser.user) {
+      const { data: existingUser } = await supabase.auth.admin.listUsers();
+      const userExists = existingUser.users?.some(user => user.email === email);
+      if (userExists) {
         return new Response(
           JSON.stringify({ error: "User already exists. Please sign in instead." }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }

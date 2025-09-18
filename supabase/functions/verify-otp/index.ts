@@ -113,19 +113,20 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("User created successfully:", authResult.data.user?.id);
     } else {
       // For sign in, find existing user
-      if (email) {
-        authResult = await supabase.auth.admin.getUserByEmail(email);
-      } else {
-        authResult = await supabase.auth.admin.getUserByPhone(phone!);
-      }
+      const { data: users } = await supabase.auth.admin.listUsers();
+      const existingUser = users.users?.find(user => 
+        email ? user.email === email : user.phone === phone
+      );
 
-      if (authResult.error || !authResult.data.user) {
-        console.error("User not found:", authResult.error);
+      if (!existingUser) {
+        console.error("User not found");
         return new Response(
           JSON.stringify({ error: "User not found. Please sign up first." }),
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
+      
+      authResult = { data: { user: existingUser }, error: null };
     }
 
     // Generate session token for the user
