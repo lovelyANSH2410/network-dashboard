@@ -18,9 +18,8 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isApproved: boolean;
-  signInWithOtp: (emailOrPhone: string, isPhone?: boolean) => Promise<{ error: any }>;
-  verifyOtp: (emailOrPhone: string, token: string, isPhone?: boolean) => Promise<{ error: any }>;
-  signUp: (emailOrPhone: string, userData?: any, isPhone?: boolean) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
 }
@@ -137,14 +136,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithOtp = async (emailOrPhone: string, isPhone: boolean = false) => {
+  const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: {
-          email: isPhone ? undefined : emailOrPhone,
-          phone: isPhone ? emailOrPhone : undefined,
-          isSignUp: false
-        }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
       if (error) throw error;
@@ -154,36 +150,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const verifyOtp = async (emailOrPhone: string, token: string, isPhone: boolean = false) => {
+  const signUp = async (email: string, password: string, userData: any = {}) => {
     try {
-      const { data, error } = await supabase.functions.invoke('verify-otp', {
-        body: {
-          email: isPhone ? undefined : emailOrPhone,
-          phone: isPhone ? emailOrPhone : undefined,
-          otp: token,
-          isSignUp: false
-        }
-      });
-
-      if (error) throw error;
-      
-      // The edge function handles session creation
-      // Force refresh auth state
-      await supabase.auth.refreshSession();
-      return { error: null };
-    } catch (error: any) {
-      return { error };
-    }
-  };
-
-  const signUp = async (emailOrPhone: string, userData: any = {}, isPhone: boolean = false) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('send-otp', {
-        body: {
-          email: isPhone ? undefined : emailOrPhone,
-          phone: isPhone ? emailOrPhone : undefined,
-          isSignUp: true,
-          userData
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: userData
         }
       });
 
@@ -208,8 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       isAdmin,
       isApproved,
-      signInWithOtp,
-      verifyOtp,
+      signIn,
       signUp,
       signOut,
       refreshUserData
