@@ -10,7 +10,7 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && user.profile) {
       if (isAdmin) {
         // Admin user - redirect to admin dashboard
         navigate('/admin');
@@ -44,8 +44,8 @@ export default function Index() {
     );
   }
 
-  // If user is authenticated, they will be redirected by useEffect, show loading
-  if (user) {
+  // If user is authenticated with profile, they will be redirected by useEffect, show loading
+  if (user && user.profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -54,6 +54,12 @@ export default function Index() {
         </div>
       </div>
     );
+  }
+
+  // If user exists but no profile, redirect to auth (sign out scenario)
+  if (user && !user.profile) {
+    navigate('/auth');
+    return null;
   }
 
   // Landing page for unauthenticated users

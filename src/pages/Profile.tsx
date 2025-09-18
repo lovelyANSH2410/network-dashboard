@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2, Save, X, ArrowLeft } from "lucide-react";
 
 type OrganizationType = 'Corporate' | 'Startup' | 'Non-Profit' | 'Government' | 'Consulting' | 'Education' | 'Healthcare' | 'Technology' | 'Finance' | 'Other';
 type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive' | 'Student' | 'Recent Graduate';
@@ -46,6 +47,7 @@ interface Profile {
 }
 
 const Profile = () => {
+  const { user: authUser, isAdmin } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,6 +185,16 @@ const Profile = () => {
   return (
     <div className="container mx-auto py-6 max-w-4xl">
       <div className="mb-6">
+        <div className="flex items-center gap-4 mb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </div>
         <h1 className="text-3xl font-bold">My Profile</h1>
         <p className="text-muted-foreground">
           Manage your profile information and privacy settings
