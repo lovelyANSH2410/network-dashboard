@@ -168,13 +168,14 @@ export default function AdminDashboard() {
           <p><strong>Registered:</strong> {new Date(profile.created_at).toLocaleDateString()}</p>
         </div>
         
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-col gap-2 mt-4">
           <Dialog>
             <DialogTrigger asChild>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => setSelectedProfile(profile)}
+                className="w-full"
               >
                 <Eye className="w-4 h-4 mr-1" />
                 View Details
@@ -296,11 +297,12 @@ export default function AdminDashboard() {
           </Dialog>
 
           {profile.approval_status === 'pending' && (
-            <>
+            <div className="flex gap-2">
               <Button 
                 size="sm"
                 onClick={() => handleApprove(profile.user_id)}
                 disabled={actionLoading}
+                className="flex-1"
               >
                 <CheckCircle className="w-4 h-4 mr-1" />
                 Approve
@@ -313,11 +315,12 @@ export default function AdminDashboard() {
                   setRejectionReason('');
                 }}
                 disabled={actionLoading}
+                className="flex-1"
               >
                 <XCircle className="w-4 h-4 mr-1" />
                 Reject
               </Button>
-            </>
+            </div>
           )}
         </div>
       </CardContent>
