@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
-import { Users, Clock, CheckCircle, XCircle, Eye, User, Download } from 'lucide-react';
+import { Users, Clock, CheckCircle, XCircle, Eye, User, Download, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Navigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -554,12 +554,24 @@ export default function AdminDashboard() {
 
         {/* Profiles List */}
         <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
-            <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected ({stats.rejected})</TabsTrigger>
-            <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="pending">Pending ({stats.pending})</TabsTrigger>
+              <TabsTrigger value="approved">Approved ({stats.approved})</TabsTrigger>
+              <TabsTrigger value="rejected">Rejected ({stats.rejected})</TabsTrigger>
+              <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
+            </TabsList>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={fetchProfiles}
+              disabled={loading}
+              className="ml-2"
+            >
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Refresh
+            </Button>
+          </div>
 
           <TabsContent value="pending" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
