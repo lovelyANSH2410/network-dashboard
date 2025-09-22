@@ -195,7 +195,7 @@ const Profile = () => {
         .getPublicUrl(fileName);
 
       console.log("public url ", data);
-
+      console.log("user" , user);
       // Update profile with new avatar URL
       const { response, error: updateError } = await supabase
         .from('profiles')
@@ -204,6 +204,7 @@ const Profile = () => {
         .select();
 
       console.log("response", response);
+      
 
       if (updateError) throw updateError;
 
