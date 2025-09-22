@@ -457,10 +457,7 @@ export default function AdminDashboard() {
               <Button 
                 variant="destructive"
                 size="sm"
-                onClick={() => {
-                  setSelectedProfile(profile);
-                  setRejectionReason('');
-                }}
+                onClick={() => handleReject(profile.user_id)}
                 disabled={actionLoading}
                 className="flex-1"
               >
