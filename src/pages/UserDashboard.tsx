@@ -31,7 +31,7 @@ export default function UserDashboard() {
           <p className="text-muted-foreground">Connect with fellow alumni and explore the directory</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        {/* <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -50,12 +50,12 @@ export default function UserDashboard() {
                 <p className="text-muted-foreground">
                   Connect with fellow alumni and expand your professional network.
                 </p>
-              </div>
+              </div> */}
               <MemberDirectory />
-            </div>
-          </TabsContent>
+            {/* </div>
+          </TabsContent> */}
 
-          <TabsContent value="members">
+          {/* <TabsContent value="members">
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2">IIM-AMS Members Directory</h2>
@@ -65,8 +65,8 @@ export default function UserDashboard() {
               </div>
               <MemberDirectory />
             </div>
-          </TabsContent>
-        </Tabs>
+          </TabsContent> */}
+        {/* </Tabs> */}
       </main>
     </div>
   );
