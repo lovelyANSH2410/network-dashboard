@@ -14,6 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useCountries } from "@/hooks/useCountries";
 import { Loader2, Save, X, ArrowLeft, Upload } from "lucide-react";
 
 type OrganizationType = 'Corporate' | 'Startup' | 'Non-Profit' | 'Government' | 'Consulting' | 'Education' | 'Healthcare' | 'Technology' | 'Finance' | 'Other';
@@ -27,6 +28,7 @@ interface Profile {
   last_name: string | null;
   email: string | null;
   phone: string | null;
+  country_code: string | null;
   program: string | null;
   graduation_year: number | null;
   organization: string | null;
@@ -59,6 +61,7 @@ const Profile = () => {
   const [skillsInput, setSkillsInput] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { countries, loading: countriesLoading } = useCountries();
 
   useEffect(() => {
     const getUser = async () => {
@@ -345,13 +348,31 @@ const Profile = () => {
                   onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 />
               </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={profile.phone || ""}
-                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                />
+              <div className="space-y-2">
+                <Label>Phone Number</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={profile.country_code || ""}
+                    onValueChange={(value) => setProfile({ ...profile, country_code: value })}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.dialCode}>
+                          {country.flag} {country.dialCode}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Phone number"
+                    value={profile.phone || ""}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    className="flex-1"
+                  />
+                </div>
               </div>
             </div>
 
@@ -469,19 +490,36 @@ const Profile = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
+                <Label htmlFor="country">Country</Label>
+                <Select
+                  value={profile.country || ""}
+                  onValueChange={(value) => {
+                    const selectedCountry = countries.find(c => c.name === value);
+                    setProfile({ 
+                      ...profile, 
+                      country: value,
+                      country_code: selectedCountry?.dialCode || profile.country_code
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.code} value={country.name}>
+                        {country.flag} {country.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label htmlFor="city">City</Label>
                 <Input
                   id="city"
                   value={profile.city || ""}
                   onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  value={profile.country || ""}
-                  onChange={(e) => setProfile({ ...profile, country: e.target.value })}
                 />
               </div>
               <div>

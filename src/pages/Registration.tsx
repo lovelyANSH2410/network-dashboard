@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useCountries } from '@/hooks/useCountries';
 import { Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 
@@ -16,12 +17,14 @@ export default function Registration() {
   const { user, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { countries, loading: countriesLoading } = useCountries();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     phone: '',
+    country_code: '',
     address: '',
     date_of_birth: '',
     city: '',
@@ -122,6 +125,7 @@ export default function Registration() {
           first_name: formData.first_name,
           last_name: formData.last_name,
           phone: formData.phone,
+          country_code: formData.country_code,
           address: formData.address,
           date_of_birth: formData.date_of_birth || null,
           city: formData.city,
@@ -180,6 +184,34 @@ export default function Registration() {
               {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Personal Information</h3>
+                
+                {/* Country Selection First */}
+                <div>
+                  <Label htmlFor="country">Country *</Label>
+                  <Select 
+                    onValueChange={(value) => {
+                      const selectedCountry = countries.find(c => c.name === value);
+                      setFormData({
+                        ...formData, 
+                        country: value,
+                        country_code: selectedCountry?.dialCode || ''
+                      });
+                    }}
+                    value={formData.country}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your country first" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country.code} value={country.name}>
+                          {country.flag} {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="first_name">First Name *</Label>
@@ -210,17 +242,32 @@ export default function Registration() {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+1234567890"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      required
-                      className={errors.phone ? 'border-red-500' : ''}
-                    />
+                  <div className="space-y-2">
+                    <Label>Phone Number *</Label>
+                    <div className="flex gap-2">
+                      <Select
+                        value={formData.country_code}
+                        onValueChange={(value) => setFormData({...formData, country_code: value})}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="Code" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem key={country.code} value={country.dialCode}>
+                              {country.flag} {country.dialCode}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        placeholder="Phone number"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        required
+                        className={`flex-1 ${errors.phone ? 'border-red-500' : ''}`}
+                      />
+                    </div>
                     {errors.phone && (
                       <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
                     )}
@@ -250,23 +297,14 @@ export default function Registration() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => setFormData({...formData, city: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      value={formData.country}
-                      onChange={(e) => setFormData({...formData, country: e.target.value})}
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    placeholder="Enter your city"
+                  />
                 </div>
               </div>
 

@@ -29,9 +29,10 @@ interface MemberCardProps {
   member: MemberData;
   showContactInfo?: boolean;
   onViewProfile?: (memberId: string) => void;
+  hideProfileButton?: boolean;
 }
 
-export function MemberCard({ member, showContactInfo = false, onViewProfile }: MemberCardProps) {
+export function MemberCard({ member, showContactInfo = false, onViewProfile, hideProfileButton = false }: MemberCardProps) {
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName[0]}${lastName[0]}`.toUpperCase();
   };
@@ -145,13 +146,15 @@ export function MemberCard({ member, showContactInfo = false, onViewProfile }: M
           <span className="text-xs text-muted-foreground">
             {member.yearsExperience}+ years experience
           </span>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => onViewProfile?.(member.id)}
-          >
-            View Profile
-          </Button>
+          {!hideProfileButton && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onViewProfile?.(member.id)}
+            >
+              View Profile
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

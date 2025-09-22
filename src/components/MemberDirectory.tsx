@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Search, Users, Mail, Phone, MapPin, Building, Calendar, Linkedin, Globe } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
@@ -20,6 +21,7 @@ export default function MemberDirectory() {
   const [experienceFilter, setExperienceFilter] = useState('all');
   const [organizationTypeFilter, setOrganizationTypeFilter] = useState('all');
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     fetchMembers();
