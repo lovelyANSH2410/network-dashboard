@@ -342,7 +342,7 @@ export default function MemberDirectory() {
                     {userDirectoryIds.has(member.user_id) && (
                       <Badge 
                         variant="secondary" 
-                        className="relative top-2 right-2 text-xs bg-green-100 text-green-700 border-green-300"
+                        className="relative top-0 right-2 text-xs bg-green-100 text-green-700 border-green-300 mb-4"
                       >
                         In Directory
                       </Badge>
