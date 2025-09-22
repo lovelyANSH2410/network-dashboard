@@ -343,6 +343,250 @@ export default function MemberDirectory() {
                         <h3 className="font-semibold text-lg truncate">
                           {member.first_name} {member.last_name}
                         </h3>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem
+                              onClick={() => removeFromDirectory(member.user_id)}
+                              className="text-destructive"
+                            >
+                              <X className="h-4 w-4 mr-2" />
+                              Remove from Directory
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      
+                      {member.position && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {member.position}
+                        </p>
+                      )}
+                      
+                      {member.organization && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Building className="h-3 w-3 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground truncate">
+                            {member.organization}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {(member.city || member.country) && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <MapPin className="h-3 w-3 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground truncate">
+                            {member.city}{member.city && member.country && ', '}{member.country}
+                          </p>
+                        </div>
+                      )}
+
+                      {member.program && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground truncate">
+                            {member.program}
+                            {member.graduation_year && ` (${member.graduation_year})`}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Contact Info (only if member allows it) */}
+                      {member.show_contact_info && (
+                        <div className="mt-3 space-y-1">
+                          {member.email && (
+                            <div className="flex items-center gap-1">
+                              <Mail className="h-3 w-3 text-muted-foreground" />
+                              <a href={`mailto:${member.email}`} className="text-xs text-blue-600 hover:underline truncate">
+                                {member.email}
+                              </a>
+                            </div>
+                          )}
+                          
+                          {member.phone && (
+                            <div className="flex items-center gap-1">
+                              <Phone className="h-3 w-3 text-muted-foreground" />
+                              <a href={`tel:${member.phone}`} className="text-xs text-blue-600 hover:underline">
+                                {member.phone}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Social Links */}
+                      <div className="flex gap-2 mt-3">
+                        {member.linkedin_url && (
+                          <a 
+                            href={member.linkedin_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Linkedin className="h-4 w-4" />
+                          </a>
+                        )}
+                        
+                        {member.website_url && (
+                          <a 
+                            href={member.website_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-gray-600 hover:text-gray-800"
+                          >
+                            <Globe className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Tags */}
+                      <div className="mt-3 space-y-2">
+                        {member.experience_level && (
+                          <Badge variant="secondary" className="text-xs">
+                            {member.experience_level}
+                          </Badge>
+                        )}
+                        
+                        {member.organization_type && (
+                          <Badge variant="outline" className="text-xs ml-1">
+                            {member.organization_type}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Skills */}
+                      {member.skills && member.skills.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex flex-wrap gap-1">
+                            {member.skills.slice(0, 3).map((skill, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                            {member.skills.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{member.skills.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+
+          {filteredMembers.length === 0 && (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No members found</h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search criteria or filters to see more results.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="directory" className="space-y-6">
+          {/* Search and Filters for Directory */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Search My Directory
+              </CardTitle>
+              <CardDescription>
+                Find members in your personal directory
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="search-directory">Search</Label>
+                  <Input
+                    id="search-directory"
+                    placeholder="Search by name, organization, position..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="experience-directory">Experience Level</Label>
+                  <Select value={experienceFilter} onValueChange={setExperienceFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All experience levels" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All experience levels</SelectItem>
+                      <SelectItem value="Student">Student</SelectItem>
+                      <SelectItem value="Recent Graduate">Recent Graduate</SelectItem>
+                      <SelectItem value="Entry Level">Entry Level</SelectItem>
+                      <SelectItem value="Mid Level">Mid Level</SelectItem>
+                      <SelectItem value="Senior Level">Senior Level</SelectItem>
+                      <SelectItem value="Executive">Executive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="orgType-directory">Organization Type</Label>
+                  <Select value={organizationTypeFilter} onValueChange={setOrganizationTypeFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All organization types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All organization types</SelectItem>
+                      <SelectItem value="Corporate">Corporate</SelectItem>
+                      <SelectItem value="Startup">Startup</SelectItem>
+                      <SelectItem value="Non-Profit">Non-Profit</SelectItem>
+                      <SelectItem value="Government">Government</SelectItem>
+                      <SelectItem value="Consulting">Consulting</SelectItem>
+                      <SelectItem value="Education">Education</SelectItem>
+                      <SelectItem value="Healthcare">Healthcare</SelectItem>
+                      <SelectItem value="Technology">Technology</SelectItem>
+                      <SelectItem value="Finance">Finance</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Results Count for Directory */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            <span>Showing {filteredMembers.length} of {directoryMembers.length} directory members</span>
+          </div>
+
+          {/* Directory Members Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredMembers.map((member) => (
+              <Card key={member.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={member.avatar_url || ''} alt={`${member.first_name} ${member.last_name}`} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {getInitials(member.first_name, member.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-lg truncate">
+                          {member.first_name} {member.last_name}
+                        </h3>
                         {user && (
                           <Button
                             variant={userDirectoryIds.has(member.user_id) ? "destructive" : "outline"}
@@ -488,249 +732,7 @@ export default function MemberDirectory() {
             </Card>
             ))}
           </div>
-
-          {filteredMembers.length === 0 && (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No members found</h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search criteria or filters to see more results.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="directory" className="space-y-6">
-          {/* Search and Filters for Directory */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Search My Directory
-              </CardTitle>
-              <CardDescription>
-                Find members in your personal directory
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="search-directory">Search</Label>
-                  <Input
-                    id="search-directory"
-                    placeholder="Search by name, organization, position..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="experience-directory">Experience Level</Label>
-                  <Select value={experienceFilter} onValueChange={setExperienceFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All experience levels" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All experience levels</SelectItem>
-                      <SelectItem value="Student">Student</SelectItem>
-                      <SelectItem value="Recent Graduate">Recent Graduate</SelectItem>
-                      <SelectItem value="Entry Level">Entry Level</SelectItem>
-                      <SelectItem value="Mid Level">Mid Level</SelectItem>
-                      <SelectItem value="Senior Level">Senior Level</SelectItem>
-                      <SelectItem value="Executive">Executive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="orgType-directory">Organization Type</Label>
-                  <Select value={organizationTypeFilter} onValueChange={setOrganizationTypeFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All organization types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All organization types</SelectItem>
-                      <SelectItem value="Corporate">Corporate</SelectItem>
-                      <SelectItem value="Startup">Startup</SelectItem>
-                      <SelectItem value="Non-Profit">Non-Profit</SelectItem>
-                      <SelectItem value="Government">Government</SelectItem>
-                      <SelectItem value="Consulting">Consulting</SelectItem>
-                      <SelectItem value="Education">Education</SelectItem>
-                      <SelectItem value="Healthcare">Healthcare</SelectItem>
-                      <SelectItem value="Technology">Technology</SelectItem>
-                      <SelectItem value="Finance">Finance</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Results Count for Directory */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>Showing {filteredMembers.length} of {directoryMembers.length} directory members</span>
-          </div>
-
-          {/* Directory Members Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMembers.map((member) => (
-              <Card key={member.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={member.avatar_url || ''} alt={`${member.first_name} ${member.last_name}`} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {getInitials(member.first_name, member.last_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-lg truncate">
-                          {member.first_name} {member.last_name}
-                        </h3>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem
-                              onClick={() => removeFromDirectory(member.user_id)}
-                              className="text-destructive"
-                            >
-                              <X className="h-4 w-4 mr-2" />
-                              Remove from Directory
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      
-                      {member.position && (
-                        <p className="text-sm text-muted-foreground truncate">
-                          {member.position}
-                        </p>
-                      )}
-                      
-                      {member.organization && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <Building className="h-3 w-3 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground truncate">
-                            {member.organization}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {(member.city || member.country) && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground truncate">
-                            {member.city}{member.city && member.country && ', '}{member.country}
-                          </p>
-                        </div>
-                      )}
-
-                      {member.program && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <Calendar className="h-3 w-3 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground truncate">
-                            {member.program}
-                            {member.graduation_year && ` (${member.graduation_year})`}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Contact Info (only if member allows it) */}
-                      {member.show_contact_info && (
-                        <div className="mt-3 space-y-1">
-                          {member.email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="h-3 w-3 text-muted-foreground" />
-                              <a href={`mailto:${member.email}`} className="text-xs text-blue-600 hover:underline truncate">
-                                {member.email}
-                              </a>
-                            </div>
-                          )}
-                          
-                          {member.phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="h-3 w-3 text-muted-foreground" />
-                              <a href={`tel:${member.phone}`} className="text-xs text-blue-600 hover:underline">
-                                {member.phone}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Social Links */}
-                      <div className="flex gap-2 mt-3">
-                        {member.linkedin_url && (
-                          <a 
-                            href={member.linkedin_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Linkedin className="h-4 w-4" />
-                          </a>
-                        )}
-                        
-                        {member.website_url && (
-                          <a 
-                            href={member.website_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-gray-600 hover:text-gray-800"
-                          >
-                            <Globe className="h-4 w-4" />
-                          </a>
-                        )}
-                      </div>
-
-                      {/* Tags */}
-                      <div className="mt-3 space-y-2">
-                        {member.experience_level && (
-                          <Badge variant="secondary" className="text-xs">
-                            {member.experience_level}
-                          </Badge>
-                        )}
-                        
-                        {member.organization_type && (
-                          <Badge variant="outline" className="text-xs ml-1">
-                            {member.organization_type}
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Skills */}
-                      {member.skills && member.skills.length > 0 && (
-                        <div className="mt-3">
-                          <div className="flex flex-wrap gap-1">
-                            {member.skills.slice(0, 3).map((skill, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {skill}
-                              </Badge>
-                            ))}
-                            {member.skills.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{member.skills.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          
 
           {filteredMembers.length === 0 && (
             <Card>
