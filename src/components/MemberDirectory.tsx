@@ -338,6 +338,15 @@ export default function MemberDirectory() {
             {filteredMembers.map((member) => (
               <Card key={member.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
+                   {/* Badge if already in directory */}
+                    {userDirectoryIds.has(member.user_id) && (
+                      <Badge 
+                        variant="secondary" 
+                        className="absolute top-2 right-2 text-xs bg-green-100 text-green-700 border-green-300"
+                      >
+                        In Directory
+                      </Badge>
+                    )}
                   <div className="flex items-start gap-4">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={member.avatar_url || ''} alt={`${member.first_name} ${member.last_name}`} />
