@@ -167,14 +167,22 @@ export default function MemberDirectory() {
         throw new Error('No access token');
       }
 
-      const response = await supabase.functions.invoke('directory-remove', {
-        body: { member_id: memberId },
+      const response = await fetch(`https://ndytoqziowlraazwokgt.supabase.co/functions/v1/directory-remove/${memberId}`, {
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
-      if (response.error) throw response.error;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+
+      if (!result.success && result.error) throw new Error(result.error);
 
       // Update local state
       setUserDirectoryIds(prev => {
@@ -350,20 +358,22 @@ export default function MemberDirectory() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem
-                              onClick={() => addToDirectory(member.user_id)}
-                              className="text-destructive"
-                            >
-                              <X className="h-4 w-4 mr-2" />
-                              Add to Directory
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => removeFromDirectory(member.user_id)}
-                              className="text-destructive"
-                            >
-                              <X className="h-4 w-4 mr-2" />
-                              Remove from Directory
-                            </DropdownMenuItem>
+                            {!userDirectoryIds.has(member.user_id) ? (
+                              <DropdownMenuItem
+                                onClick={() => addToDirectory(member.user_id)}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add to Directory
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={() => removeFromDirectory(member.user_id)}
+                                className="text-destructive"
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Remove from Directory
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -594,29 +604,22 @@ export default function MemberDirectory() {
                         <h3 className="font-semibold text-lg truncate">
                           {member.first_name} {member.last_name}
                         </h3>
-                        {user && (
-                          <Button
-                            variant={userDirectoryIds.has(member.user_id) ? "destructive" : "outline"}
-                            size="sm"
-                            onClick={() => 
-                              userDirectoryIds.has(member.user_id) 
-                                ? removeFromDirectory(member.user_id)
-                                : addToDirectory(member.user_id)
-                            }
-                          >
-                            {userDirectoryIds.has(member.user_id) ? (
-                              <>
-                                <X className="h-3 w-3 mr-1" />
-                                Remove
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add
-                              </>
-                            )}
-                          </Button>
-                        )}
+                         <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="sm">
+                               <MoreVertical className="h-4 w-4" />
+                             </Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent>
+                             <DropdownMenuItem
+                               onClick={() => removeFromDirectory(member.user_id)}
+                               className="text-destructive"
+                             >
+                               <X className="h-4 w-4 mr-2" />
+                               Remove from Directory
+                             </DropdownMenuItem>
+                           </DropdownMenuContent>
+                         </DropdownMenu>
                       </div>
                   
                   {member.position && (

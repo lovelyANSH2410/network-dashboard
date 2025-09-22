@@ -53,6 +53,21 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check if member already exists in directory
+    const { data: existingEntry } = await supabase
+      .from('user_directory')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('member_id', member_id)
+      .single();
+
+    if (existingEntry) {
+      return new Response(
+        JSON.stringify({ error: 'User already exists in directory' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Add member to user's directory
     const { data, error } = await supabase
       .from('user_directory')
