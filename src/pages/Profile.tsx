@@ -199,14 +199,10 @@ const Profile = () => {
       console.log("new comment")
       
       // Update profile with new avatar URL
-      const { response, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url : "abc"})
-        .match({user_id': user.id})
-        // .select();
-
-      console.log("response", response);
-      
+        .update({ avatar_url: data.publicUrl })
+        .eq('user_id', user.id);
 
       if (updateError) throw updateError;
 
