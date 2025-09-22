@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
         id,
         member_id,
         created_at,
-        profiles:member_id (
+        profiles!user_directory_member_id_fkey (
           id,
           user_id,
           first_name,
