@@ -200,7 +200,7 @@ const Profile = () => {
       // Update profile with new avatar URL
       const { response, error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url : data.publicUrl})
+        .update({ avatar_url : "abc"})
         .match({user_id': user.id})
         // .select();
 
