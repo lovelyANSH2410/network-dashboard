@@ -44,16 +44,54 @@ export default function Registration() {
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
 
-    // Email validation
+    // Required fields validation
+    if (!formData.first_name.trim()) {
+      newErrors.first_name = 'First name is required';
+    }
+    if (!formData.last_name.trim()) {
+      newErrors.last_name = 'Last name is required';
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    }
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required';
+    }
+
+    // Email validation (user email from auth)
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (user?.email && !emailPattern.test(user.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Indian mobile number validation (+91 followed by 10 digits)
-    const phonePattern = /^(\+91|91)?[6-9]\d{9}$/;
-    if (formData.phone && !phonePattern.test(formData.phone.replace(/\s+/g, ''))) {
-      newErrors.phone = 'Please enter a valid Indian mobile number (+91XXXXXXXXXX)';
+    // Phone number validation (international format)
+    const phonePattern = /^(\+\d{1,3})?[\s.-]?\(?\d{1,4}\)?[\s.-]?\d{1,4}[\s.-]?\d{1,9}$/;
+    if (formData.phone && !phonePattern.test(formData.phone.trim())) {
+      newErrors.phone = 'Please enter a valid phone number (e.g., +91XXXXXXXXXX)';
+    }
+
+    // URL validations
+    if (formData.linkedin_url && formData.linkedin_url.trim()) {
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(formData.linkedin_url)) {
+        newErrors.linkedin_url = 'Please enter a valid URL starting with http:// or https://';
+      }
+    }
+
+    if (formData.website_url && formData.website_url.trim()) {
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(formData.website_url)) {
+        newErrors.website_url = 'Please enter a valid URL starting with http:// or https://';
+      }
+    }
+
+    // Graduation year validation
+    if (formData.graduation_year) {
+      const currentYear = new Date().getFullYear();
+      const gradYear = parseInt(formData.graduation_year);
+      if (gradYear < 1950 || gradYear > currentYear + 10) {
+        newErrors.graduation_year = `Please enter a valid graduation year between 1950 and ${currentYear + 10}`;
+      }
     }
 
     setErrors(newErrors);
@@ -150,7 +188,11 @@ export default function Registration() {
                       value={formData.first_name}
                       onChange={(e) => setFormData({...formData, first_name: e.target.value})}
                       required
+                      className={errors.first_name ? 'border-red-500' : ''}
                     />
+                    {errors.first_name && (
+                      <p className="text-sm text-red-500 mt-1">{errors.first_name}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="last_name">Last Name *</Label>
@@ -159,17 +201,21 @@ export default function Registration() {
                       value={formData.last_name}
                       onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                       required
+                      className={errors.last_name ? 'border-red-500' : ''}
                     />
+                    {errors.last_name && (
+                      <p className="text-sm text-red-500 mt-1">{errors.last_name}</p>
+                    )}
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="phone">Phone Number * (Indian Mobile)</Label>
+                    <Label htmlFor="phone">Phone Number *</Label>
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="+91XXXXXXXXXX"
+                      placeholder="+1234567890"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       required
@@ -197,7 +243,11 @@ export default function Registration() {
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
                     required
+                    className={errors.address ? 'border-red-500' : ''}
                   />
+                  {errors.address && (
+                    <p className="text-sm text-red-500 mt-1">{errors.address}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -297,10 +347,14 @@ export default function Registration() {
                       id="graduation_year"
                       type="number"
                       min="1950"
-                      max="2030"
+                      max="2040"
                       value={formData.graduation_year}
                       onChange={(e) => setFormData({...formData, graduation_year: e.target.value})}
+                      className={errors.graduation_year ? 'border-red-500' : ''}
                     />
+                    {errors.graduation_year && (
+                      <p className="text-sm text-red-500 mt-1">{errors.graduation_year}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -348,7 +402,11 @@ export default function Registration() {
                       value={formData.linkedin_url}
                       onChange={(e) => setFormData({...formData, linkedin_url: e.target.value})}
                       placeholder="https://linkedin.com/in/yourprofile"
+                      className={errors.linkedin_url ? 'border-red-500' : ''}
                     />
+                    {errors.linkedin_url && (
+                      <p className="text-sm text-red-500 mt-1">{errors.linkedin_url}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="website_url">Website URL</Label>
@@ -358,7 +416,11 @@ export default function Registration() {
                       value={formData.website_url}
                       onChange={(e) => setFormData({...formData, website_url: e.target.value})}
                       placeholder="https://yourwebsite.com"
+                      className={errors.website_url ? 'border-red-500' : ''}
                     />
+                    {errors.website_url && (
+                      <p className="text-sm text-red-500 mt-1">{errors.website_url}</p>
+                    )}
                   </div>
                 </div>
               </div>

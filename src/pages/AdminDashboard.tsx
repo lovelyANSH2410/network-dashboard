@@ -118,15 +118,6 @@ export default function AdminDashboard() {
   };
 
   const handleReject = async (profileUserId: string) => {
-    if (!rejectionReason.trim()) {
-      toast({
-        title: "Error",
-        description: "Please provide a reason for rejection",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setActionLoading(true);
     try {
       // Get user profile details before rejection
@@ -425,7 +416,7 @@ export default function AdminDashboard() {
                           id="rejection-reason"
                           value={rejectionReason}
                           onChange={(e) => setRejectionReason(e.target.value)}
-                          placeholder="Provide a reason for rejection..."
+                          placeholder="Provide a reason for rejection (optional)..."
                         />
                         <Button 
                           variant="destructive"
