@@ -248,8 +248,8 @@ export default function MemberDirectory() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="all">All Members</TabsTrigger>
           <TabsTrigger value="directory">My Directory</TabsTrigger>
+          <TabsTrigger value="all">All Members</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
