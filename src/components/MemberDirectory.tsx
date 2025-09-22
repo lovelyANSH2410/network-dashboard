@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Users, Mail, Phone, MapPin, Building, Calendar, Linkedin, Globe } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
@@ -169,9 +170,12 @@ export default function MemberDirectory() {
           <Card key={member.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold">
-                  {getInitials(member.first_name, member.last_name)}
-                </div>
+                <Avatar className="w-12 h-12">
+                  <AvatarImage src={member.avatar_url || ''} alt={`${member.first_name} ${member.last_name}`} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {getInitials(member.first_name, member.last_name)}
+                  </AvatarFallback>
+                </Avatar>
                 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-lg truncate">

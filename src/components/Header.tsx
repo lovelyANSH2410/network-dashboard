@@ -1,5 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,10 @@ export default function Header({ showUserInfo = false, showSignOut = false }: He
   const { user, signOut } = useAuth();
   const profile = user?.profile;
 
+  const getInitials = (firstName?: string, lastName?: string) => {
+    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
+  };
+
   return (
     <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,8 +39,13 @@ export default function Header({ showUserInfo = false, showSignOut = false }: He
 
           {showUserInfo && user && (
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-blue-100">
-                <User className="h-5 w-5" />
+              <div className="flex items-center space-x-3 text-blue-100">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={profile?.avatar_url || ''} alt="Profile" />
+                  <AvatarFallback className="text-xs bg-blue-600 text-white">
+                    {getInitials(profile?.first_name, profile?.last_name)}
+                  </AvatarFallback>
+                </Avatar>
                 <span className="text-sm">
                   Welcome, {profile?.first_name} {profile?.last_name}
                 </span>

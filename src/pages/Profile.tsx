@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Save, X, ArrowLeft } from "lucide-react";
+import { Loader2, Save, X, ArrowLeft, Upload } from "lucide-react";
 
 type OrganizationType = 'Corporate' | 'Startup' | 'Non-Profit' | 'Government' | 'Consulting' | 'Education' | 'Healthcare' | 'Technology' | 'Finance' | 'Other';
 type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive' | 'Student' | 'Recent Graduate';
@@ -52,6 +54,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [interestsInput, setInterestsInput] = useState("");
   const [skillsInput, setSkillsInput] = useState("");
   const navigate = useNavigate();
@@ -159,6 +162,66 @@ const Profile = () => {
     setSkillsInput(newSkills.join(", "));
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      // Create file path with user ID
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Delete existing avatar if it exists
+      if (profile?.avatar_url) {
+        const existingPath = profile.avatar_url.split('/').pop();
+        if (existingPath) {
+          await supabase.storage
+            .from('profile-pictures')
+            .remove([`${user.id}/${existingPath}`]);
+        }
+      }
+
+      // Upload new file
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: data.publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setProfile(prev => prev ? { ...prev, avatar_url: data.publicUrl } : null);
+      toast({ title: "Profile picture updated successfully!" });
+      
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({ 
+        title: "Error uploading profile picture", 
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getInitials = (firstName?: string | null, lastName?: string | null) => {
+    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -206,8 +269,45 @@ const Profile = () => {
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
+            <CardDescription>Update your personal details and profile picture</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Profile Picture Section */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src={profile.avatar_url || ''} alt="Profile picture" />
+                  <AvatarFallback className="text-lg">
+                    {getInitials(profile.first_name, profile.last_name)}
+                  </AvatarFallback>
+                </Avatar>
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="avatar-upload" className="cursor-pointer">
+                  <Button variant="outline" size="sm" disabled={uploading} asChild>
+                    <span>
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? 'Uploading...' : 'Upload Photo'}
+                    </span>
+                  </Button>
+                </Label>
+                <Input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
+            <Separator />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="first_name">First Name</Label>

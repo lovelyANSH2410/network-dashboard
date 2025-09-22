@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Building, GraduationCap, Mail, Linkedin, Phone } from "lucide-react";
 
 interface MemberData {
@@ -22,6 +22,7 @@ interface MemberData {
   phoneVisible?: boolean;
   interests: string[];
   profileImageUrl?: string;
+  avatar_url?: string;
 }
 
 interface MemberCardProps {
@@ -58,6 +59,7 @@ export function MemberCard({ member, showContactInfo = false, onViewProfile }: M
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
+              <AvatarImage src={member.avatar_url || member.profileImageUrl || ''} alt={`${member.firstName} ${member.lastName}`} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {getInitials(member.firstName, member.lastName)}
               </AvatarFallback>
