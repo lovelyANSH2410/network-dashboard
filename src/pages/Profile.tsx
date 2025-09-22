@@ -49,7 +49,7 @@ interface Profile {
 }
 
 const Profile = () => {
-  const { user: authUser, isAdmin } = useAuth();
+  const { user: authUser, isAdmin, refreshUserData } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -204,6 +204,10 @@ const Profile = () => {
 
       // Update local state
       setProfile(prev => prev ? { ...prev, avatar_url: data.publicUrl } : null);
+      
+      // Refresh user data in auth context to update header avatar
+      await refreshUserData();
+      
       toast({ title: "Profile picture updated successfully!" });
       
     } catch (error) {
