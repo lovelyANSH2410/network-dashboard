@@ -310,15 +310,17 @@ export default function MemberDirectory() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All organization types</SelectItem>
-                  <SelectItem value="Corporate">Corporate</SelectItem>
-                  <SelectItem value="Startup">Startup</SelectItem>
-                  <SelectItem value="Non-Profit">Non-Profit</SelectItem>
-                  <SelectItem value="Government">Government</SelectItem>
-                  <SelectItem value="Consulting">Consulting</SelectItem>
-                  <SelectItem value="Education">Education</SelectItem>
-                  <SelectItem value="Healthcare">Healthcare</SelectItem>
-                  <SelectItem value="Technology">Technology</SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
+                  <SelectItem value="Corporate">Hospital/Clinic</SelectItem>
+                  <SelectItem value="Startup">HealthTech</SelectItem>
+                  <SelectItem value="Non-Profit">Pharmaceutical</SelectItem>
+                  <SelectItem value="Government">Biotech</SelectItem>
+                  <SelectItem value="Consulting">Medical Devices</SelectItem>
+                  <SelectItem value="Education">Consulting</SelectItem>
+                  <SelectItem value="Healthcare">Public Health/Policy</SelectItem>
+                  <SelectItem value="Technology">Health Insurance</SelectItem>
+                  <SelectItem value="Finance">Academic/Research</SelectItem>
+                  <SelectItem value="Other">Startup</SelectItem>
+                  <SelectItem value="Other">VC</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
