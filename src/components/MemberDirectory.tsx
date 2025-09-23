@@ -308,19 +308,19 @@ export default function MemberDirectory() {
                 <SelectTrigger>
                   <SelectValue placeholder="All organization types" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All organization types</SelectItem>
-                  <SelectItem value="Corporate">Hospital/Clinic</SelectItem>
-                  <SelectItem value="Startup">HealthTech</SelectItem>
-                  <SelectItem value="Non-Profit">Pharmaceutical</SelectItem>
-                  <SelectItem value="Government">Biotech</SelectItem>
-                  <SelectItem value="Consulting">Medical Devices</SelectItem>
-                  <SelectItem value="Education">Consulting</SelectItem>
-                  <SelectItem value="Healthcare">Public Health/Policy</SelectItem>
-                  <SelectItem value="Technology">Health Insurance</SelectItem>
-                  <SelectItem value="Finance">Academic/Research</SelectItem>
-                  <SelectItem value="Other">Startup</SelectItem>
-                  <SelectItem value="Other">VC</SelectItem>
+               <SelectContent>
+                  <SelectItem value="All organization types">All organization types</SelectItem>
+                  <SelectItem value="Hospital/Clinic">Hospital/Clinic</SelectItem>
+                  <SelectItem value="HealthTech">HealthTech</SelectItem>
+                  <SelectItem value="Pharmaceutical">Pharmaceutical</SelectItem>
+                  <SelectItem value="Biotech">Biotech</SelectItem>
+                  <SelectItem value="Medical Devices">Medical Devices</SelectItem>
+                  <SelectItem value="Consulting">Consulting</SelectItem>
+                  <SelectItem value="Public Health/Policy">Public Health/Policy</SelectItem>
+                  <SelectItem value="Health Insurance">Health Insurance</SelectItem>
+                  <SelectItem value="Academic/Research">Academic/Research</SelectItem>
+                  <SelectItem value="Startup">Startup</SelectItem>
+                  <SelectItem value="VC">VC</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
