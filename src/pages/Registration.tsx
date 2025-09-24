@@ -355,15 +355,17 @@ export default function Registration() {
                         <SelectValue placeholder="Select organization type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Corporate">Corporate</SelectItem>
-                        <SelectItem value="Startup">Startup</SelectItem>
-                        <SelectItem value="Non-Profit">Non-Profit</SelectItem>
-                        <SelectItem value="Government">Government</SelectItem>
+                        <SelectItem value="Hospital/Clinic">Hospital/Clinic</SelectItem>
+                        <SelectItem value="HealthTech">HealthTech</SelectItem>
+                        <SelectItem value="Pharmaceutical">Pharmaceutical</SelectItem>
+                        <SelectItem value="Biotech">Biotech</SelectItem>
+                        <SelectItem value="Medical Devices">Medical Devices</SelectItem>
                         <SelectItem value="Consulting">Consulting</SelectItem>
-                        <SelectItem value="Education">Education</SelectItem>
-                        <SelectItem value="Healthcare">Healthcare</SelectItem>
-                        <SelectItem value="Technology">Technology</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Public Health/Policy">Public Health/Policy</SelectItem>
+                        <SelectItem value="Health Insurance">Health Insurance</SelectItem>
+                        <SelectItem value="Academic/Research">Academic/Research</SelectItem>
+                        <SelectItem value="Startup">Startup</SelectItem>
+                        <SelectItem value="VC">VC</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>

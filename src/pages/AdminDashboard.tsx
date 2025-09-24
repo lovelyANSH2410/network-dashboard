@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
-import { Users, Clock, CheckCircle, XCircle, Eye, User, Download, RefreshCw } from 'lucide-react';
+import { Users, Clock, CheckCircle, XCircle, Eye, User, Download, RefreshCw, Edit, Save, X, UserPlus } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Navigate, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 
 type ProfileWithApproval = Tables<'profiles'>;
+
+type OrganizationType = 'Hospital/Clinic' | 'HealthTech' | 'Pharmaceutical' | 'Biotech' | 'Medical Devices' | 'Consulting' | 'Public Health/Policy' | 'Health Insurance' | 'Academic/Research' | 'Startup' | 'VC' | 'Other';
 
 export default function AdminDashboard() {
   const { user, isAdmin } = useAuth();
@@ -25,17 +30,22 @@ export default function AdminDashboard() {
   const [selectedProfile, setSelectedProfile] = useState<ProfileWithApproval | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<ProfileWithApproval | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<ProfileWithApproval>>({});
+  const [editLoading, setEditLoading] = useState(false);
+  const [interestsInput, setInterestsInput] = useState('');
+  const [skillsInput, setSkillsInput] = useState('');
+  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+  const [addMemberLoading, setAddMemberLoading] = useState(false);
+  const [addMemberFormData, setAddMemberFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    password: ''
+  });
 
-  // Redirect if not admin
-  if (!isAdmin && !loading) {
-    return <Navigate to="/" replace />;
-  }
-
-  useEffect(() => {
-    fetchProfiles();
-  }, []);
-
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -44,7 +54,8 @@ export default function AdminDashboard() {
 
       if (error) throw error;
       setProfiles(data || []);
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
       toast({
         title: "Error",
         description: "Failed to fetch profiles",
@@ -53,7 +64,18 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchProfiles();
+    }
+  }, [isAdmin, fetchProfiles]);
+
+  // Redirect if not admin
+  if (!isAdmin && !loading) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -106,10 +128,11 @@ export default function AdminDashboard() {
 
       await fetchProfiles();
       setSelectedProfile(null);
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error approving profile:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to approve profile",
         variant: "destructive",
       });
     } finally {
@@ -162,14 +185,175 @@ export default function AdminDashboard() {
       await fetchProfiles();
       setSelectedProfile(null);
       setRejectionReason('');
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error rejecting profile:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to reject profile",
         variant: "destructive",
       });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleTogglePublicStatus = async (profileUserId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_public: !currentStatus })
+        .eq('user_id', profileUserId);
+
+      if (error) throw error;
+
+      // Update local state immediately for better UX
+      setProfiles(prev => 
+        prev.map(profile => 
+          profile.user_id === profileUserId 
+            ? { ...profile, is_public: !currentStatus }
+            : profile
+        )
+      );
+
+      toast({
+        title: "Profile Visibility Updated",
+        description: `Profile is now ${!currentStatus ? 'public' : 'private'}`,
+      });
+    } catch (error) {
+      console.error('Error updating profile visibility:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile visibility",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openEditDialog = (profile: ProfileWithApproval) => {
+    setEditingProfile(profile);
+    setEditFormData({ ...profile });
+    setInterestsInput(profile.interests?.join(', ') || '');
+    setSkillsInput(profile.skills?.join(', ') || '');
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditProfile = async () => {
+    if (!editingProfile) return;
+
+    setEditLoading(true);
+    try {
+      const interests = interestsInput
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+      
+      const skills = skillsInput
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          ...editFormData,
+          interests,
+          skills,
+        })
+        .eq('user_id', editingProfile.user_id);
+
+      if (error) throw error;
+
+      // Update local state
+      setProfiles(prev =>
+        prev.map(profile =>
+          profile.user_id === editingProfile.user_id
+            ? { ...profile, ...editFormData, interests, skills }
+            : profile
+        )
+      );
+
+      toast({
+        title: "Profile Updated",
+        description: "Profile has been successfully updated",
+      });
+
+      setIsEditDialogOpen(false);
+      setEditingProfile(null);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleAddMember = async () => {
+    if (!addMemberFormData.first_name || !addMemberFormData.last_name || !addMemberFormData.email || !addMemberFormData.password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (addMemberFormData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAddMemberLoading(true);
+    try {
+      // Create user using Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          first_name: addMemberFormData.first_name,
+          last_name: addMemberFormData.last_name,
+          email: addMemberFormData.email,
+          password: addMemberFormData.password,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Member Added Successfully",
+          description: `${addMemberFormData.first_name} ${addMemberFormData.last_name} has been added and approved.`,
+        });
+
+        // Reset form and close dialog
+        setAddMemberFormData({
+          first_name: '',
+          last_name: '',
+          email: '',
+          password: ''
+        });
+        setIsAddMemberDialogOpen(false);
+
+        // Refresh profiles list
+        await fetchProfiles();
+      } else {
+        throw new Error(data?.error || 'Failed to create user');
+      }
+    } catch (error: unknown) {
+      console.error('Error adding member:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to add member";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setAddMemberLoading(false);
     }
   };
 
@@ -279,7 +463,8 @@ export default function AdminDashboard() {
         title: "Export Successful",
         description: `${approvedProfiles.length} member records exported to ${filename}`,
       });
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
       toast({
         title: "Export Failed",
         description: "Failed to export member data to Excel",
@@ -313,6 +498,15 @@ export default function AdminDashboard() {
             <p><strong>Phone:</strong> {profile.phone}</p>
           )}
           <p><strong>Registered:</strong> {new Date(profile.created_at).toLocaleDateString()}</p>
+          {profile.approval_status === 'approved' && (
+            <div className="flex items-center justify-between pt-2 border-t">
+              <span className="text-sm font-medium">Public Profile</span>
+              <Switch
+                checked={profile.is_public || false}
+                onCheckedChange={() => handleTogglePublicStatus(profile.user_id, profile.is_public || false)}
+              />
+            </div>
+          )}
         </div>
         
         <div className="flex flex-col gap-2 mt-4">
@@ -396,6 +590,50 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* Privacy Settings - Only show for approved profiles */}
+                  {selectedProfile.approval_status === 'approved' && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Privacy Settings</h4>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="is_public">Public Profile</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Allow others to see this profile in the directory
+                            </p>
+                          </div>
+                          <Switch
+                            id="is_public"
+                            checked={selectedProfile.is_public || false}
+                            onCheckedChange={() => handleTogglePublicStatus(selectedProfile.user_id, selectedProfile.is_public || false)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="show_contact_info">Show Contact Information</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Display email, phone, and LinkedIn to other users
+                            </p>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {selectedProfile.show_contact_info ? 'Yes' : 'No'}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="show_location">Show Location</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Display location information to other users
+                            </p>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {selectedProfile.show_location ? 'Yes' : 'No'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Actions for pending profiles */}
                   {selectedProfile.approval_status === 'pending' && (
                     <div className="space-y-4">
@@ -442,6 +680,16 @@ export default function AdminDashboard() {
               )}
             </DialogContent>
           </Dialog>
+
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => openEditDialog(profile)}
+            className="w-full"
+          >
+            <Edit className="w-4 h-4 mr-1" />
+            Edit Profile
+          </Button>
 
           {profile.approval_status === 'pending' && (
             <div className="flex gap-2">
@@ -494,6 +742,10 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">Manage user profiles and applications</p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => setIsAddMemberDialogOpen(true)}>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Add Member
+            </Button>
             <Button variant="outline" onClick={exportToExcel}>
               <Download className="w-4 h-4 mr-2" />
               Export Excel
@@ -595,6 +847,409 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Edit Profile - {editingProfile?.first_name} {editingProfile?.last_name}
+            </DialogTitle>
+            <DialogDescription>
+              Modify any profile details below. Changes will be saved immediately.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingProfile && (
+            <div className="space-y-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Personal Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-first_name">First Name</Label>
+                    <Input
+                      id="edit-first_name"
+                      value={editFormData.first_name || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-last_name">Last Name</Label>
+                    <Input
+                      id="edit-last_name"
+                      value={editFormData.last_name || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-email">Email</Label>
+                    <Input
+                      id="edit-email"
+                      type="email"
+                      value={editFormData.email || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-phone">Phone</Label>
+                    <Input
+                      id="edit-phone"
+                      value={editFormData.phone || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-date_of_birth">Date of Birth</Label>
+                    <Input
+                      id="edit-date_of_birth"
+                      type="date"
+                      value={editFormData.date_of_birth || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, date_of_birth: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-city">City</Label>
+                    <Input
+                      id="edit-city"
+                      value={editFormData.city || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-country">Country</Label>
+                    <Input
+                      id="edit-country"
+                      value={editFormData.country || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, country: e.target.value })}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="edit-address">Address</Label>
+                    <Textarea
+                      id="edit-address"
+                      value={editFormData.address || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Professional Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-organization">Organization</Label>
+                    <Input
+                      id="edit-organization"
+                      value={editFormData.organization || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, organization: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-position">Position</Label>
+                    <Input
+                      id="edit-position"
+                      value={editFormData.position || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, position: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-experience_level">Experience Level</Label>
+                    <Select 
+                      value={editFormData.experience_level || ''} 
+                      onValueChange={(value) => setEditFormData({ ...editFormData, experience_level: value as 'Student' | 'Recent Graduate' | 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive' })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select experience level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Student">Student</SelectItem>
+                        <SelectItem value="Recent Graduate">Recent Graduate</SelectItem>
+                        <SelectItem value="Entry Level">Entry Level</SelectItem>
+                        <SelectItem value="Mid Level">Mid Level</SelectItem>
+                        <SelectItem value="Senior Level">Senior Level</SelectItem>
+                        <SelectItem value="Executive">Executive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-organization_type">Organization Type</Label>
+                    <Select 
+                      value={editFormData.organization_type || ''} 
+                      onValueChange={(value) => setEditFormData({ ...editFormData, organization_type: value as any })} // eslint-disable-line @typescript-eslint/no-explicit-any
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select organization type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Hospital/Clinic">Hospital/Clinic</SelectItem>
+                        <SelectItem value="HealthTech">HealthTech</SelectItem>
+                        <SelectItem value="Pharmaceutical">Pharmaceutical</SelectItem>
+                        <SelectItem value="Biotech">Biotech</SelectItem>
+                        <SelectItem value="Medical Devices">Medical Devices</SelectItem>
+                        <SelectItem value="Consulting">Consulting</SelectItem>
+                        <SelectItem value="Public Health/Policy">Public Health/Policy</SelectItem>
+                        <SelectItem value="Health Insurance">Health Insurance</SelectItem>
+                        <SelectItem value="Academic/Research">Academic/Research</SelectItem>
+                        <SelectItem value="Startup">Startup</SelectItem>
+                        <SelectItem value="VC">VC</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-program">Program</Label>
+                    <Input
+                      id="edit-program"
+                      value={editFormData.program || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, program: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-graduation_year">Graduation Year</Label>
+                    <Input
+                      id="edit-graduation_year"
+                      type="number"
+                      value={editFormData.graduation_year || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, graduation_year: parseInt(e.target.value) || null })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Additional Information</h3>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-bio">Bio</Label>
+                    <Textarea
+                      id="edit-bio"
+                      value={editFormData.bio || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
+                      placeholder="Tell us about yourself..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-skills">Skills (comma-separated)</Label>
+                    <Input
+                      id="edit-skills"
+                      value={skillsInput}
+                      onChange={(e) => setSkillsInput(e.target.value)}
+                      placeholder="JavaScript, React, Python..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-interests">Interests (comma-separated)</Label>
+                    <Input
+                      id="edit-interests"
+                      value={interestsInput}
+                      onChange={(e) => setInterestsInput(e.target.value)}
+                      placeholder="Technology, Travel, Sports..."
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-linkedin_url">LinkedIn URL</Label>
+                      <Input
+                        id="edit-linkedin_url"
+                        value={editFormData.linkedin_url || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, linkedin_url: e.target.value })}
+                        placeholder="https://linkedin.com/in/yourprofile"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-website_url">Website URL</Label>
+                      <Input
+                        id="edit-website_url"
+                        value={editFormData.website_url || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, website_url: e.target.value })}
+                        placeholder="https://yourwebsite.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy Settings */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Privacy Settings</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="edit-is_public">Public Profile</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow others to see this profile in the directory
+                      </p>
+                    </div>
+                    <Switch
+                      id="edit-is_public"
+                      checked={editFormData.is_public || false}
+                      onCheckedChange={(checked) => setEditFormData({ ...editFormData, is_public: checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="edit-show_contact_info">Show Contact Information</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Display email, phone, and LinkedIn to other users
+                      </p>
+                    </div>
+                    <Switch
+                      id="edit-show_contact_info"
+                      checked={editFormData.show_contact_info || false}
+                      onCheckedChange={(checked) => setEditFormData({ ...editFormData, show_contact_info: checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="edit-show_location">Show Location</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Display location information to other users
+                      </p>
+                    </div>
+                    <Switch
+                      id="edit-show_location"
+                      checked={editFormData.show_location || false}
+                      onCheckedChange={(checked) => setEditFormData({ ...editFormData, show_location: checked })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditDialogOpen(false)}
+                  disabled={editLoading}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleEditProfile}
+                  disabled={editLoading}
+                >
+                  {editLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Member Dialog */}
+      <Dialog open={isAddMemberDialogOpen} onOpenChange={setIsAddMemberDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              Add New Member
+            </DialogTitle>
+            <DialogDescription>
+              Create a new member account. The member will be automatically approved and can log in immediately.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="add-first_name">First Name *</Label>
+                <Input
+                  id="add-first_name"
+                  value={addMemberFormData.first_name}
+                  onChange={(e) => setAddMemberFormData({ ...addMemberFormData, first_name: e.target.value })}
+                  placeholder="Enter first name"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="add-last_name">Last Name *</Label>
+                <Input
+                  id="add-last_name"
+                  value={addMemberFormData.last_name}
+                  onChange={(e) => setAddMemberFormData({ ...addMemberFormData, last_name: e.target.value })}
+                  placeholder="Enter last name"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="add-email">Email *</Label>
+              <Input
+                id="add-email"
+                type="email"
+                value={addMemberFormData.email}
+                onChange={(e) => setAddMemberFormData({ ...addMemberFormData, email: e.target.value })}
+                placeholder="Enter email address"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="add-password">Password *</Label>
+              <Input
+                id="add-password"
+                type="password"
+                value={addMemberFormData.password}
+                onChange={(e) => setAddMemberFormData({ ...addMemberFormData, password: e.target.value })}
+                placeholder="Enter password (min 6 characters)"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddMemberDialogOpen(false);
+                setAddMemberFormData({
+                  first_name: '',
+                  last_name: '',
+                  email: '',
+                  password: ''
+                });
+              }}
+              disabled={addMemberLoading}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddMember}
+              disabled={addMemberLoading}
+            >
+              {addMemberLoading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Adding Member...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Member
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

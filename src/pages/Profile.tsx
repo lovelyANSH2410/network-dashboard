@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCountries } from "@/hooks/useCountries";
 import { Loader2, Save, X, ArrowLeft, Upload } from "lucide-react";
 
-type OrganizationType = 'Corporate' | 'Startup' | 'Non-Profit' | 'Government' | 'Consulting' | 'Education' | 'Healthcare' | 'Technology' | 'Finance' | 'Other';
+type OrganizationType = 'Hospital/Clinic' | 'HealthTech' | 'Pharmaceutical' | 'Biotech' | 'Medical Devices' | 'Consulting' | 'Public Health/Policy' | 'Health Insurance' | 'Academic/Research' | 'Startup' | 'VC' | 'Other';
 type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive' | 'Student' | 'Recent Graduate';
 type ProfileStatus = 'Active' | 'Alumni' | 'Student' | 'Faculty' | 'Inactive';
 
@@ -435,15 +435,17 @@ const Profile = () => {
                     <SelectValue placeholder="Select organization type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Corporate">Corporate</SelectItem>
-                    <SelectItem value="Startup">Startup</SelectItem>
-                    <SelectItem value="Non-Profit">Non-Profit</SelectItem>
-                    <SelectItem value="Government">Government</SelectItem>
+                    <SelectItem value="Hospital/Clinic">Hospital/Clinic</SelectItem>
+                    <SelectItem value="HealthTech">HealthTech</SelectItem>
+                    <SelectItem value="Pharmaceutical">Pharmaceutical</SelectItem>
+                    <SelectItem value="Biotech">Biotech</SelectItem>
+                    <SelectItem value="Medical Devices">Medical Devices</SelectItem>
                     <SelectItem value="Consulting">Consulting</SelectItem>
-                    <SelectItem value="Education">Education</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Public Health/Policy">Public Health/Policy</SelectItem>
+                    <SelectItem value="Health Insurance">Health Insurance</SelectItem>
+                    <SelectItem value="Academic/Research">Academic/Research</SelectItem>
+                    <SelectItem value="Startup">Startup</SelectItem>
+                    <SelectItem value="VC">VC</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +58,8 @@ export default function Auth() {
           description: "Signed in successfully",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Sign in error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -104,15 +106,35 @@ export default function Auth() {
           variant: "destructive",
         });
       } else {
+        // Send notification to admin about new pending user
+        try {
+          const { error: emailError } = await supabase.functions.invoke('request-pending', {
+            body: {
+              firstName,
+              lastName,
+              email,
+            }
+          });
+
+          if (emailError) {
+            console.error('Error sending admin notification:', emailError);
+            // Don't fail the signup if email fails
+          }
+        } catch (emailError) {
+          console.error('Error sending admin notification:', emailError);
+          // Don't fail the signup if email fails
+        }
+
         toast({
           title: "Success",
           description: "Account created successfully! Please check your email to confirm your account.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Sign up error:', error);
       toast({
         title: "Error",
-        description: error.message || "An unexpected error occurred",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
