@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useCountries } from "@/hooks/useCountries";
 import { Loader2, Save, X, ArrowLeft, Upload } from "lucide-react";
+import { OrganizationSelector } from "@/components/OrganizationSelector";
 
 type OrganizationType = 'Hospital/Clinic' | 'HealthTech' | 'Pharmaceutical' | 'Biotech' | 'Medical Devices' | 'Consulting' | 'Public Health/Policy' | 'Health Insurance' | 'Academic/Research' | 'Startup' | 'VC' | 'Other';
 type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive' | 'Student' | 'Recent Graduate';
@@ -419,10 +420,10 @@ const Profile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="organization">Organization</Label>
-                <Input
-                  id="organization"
+                <OrganizationSelector
                   value={profile.organization || ""}
-                  onChange={(e) => setProfile({ ...profile, organization: e.target.value })}
+                  onChange={(value) => setProfile({ ...profile, organization: value })}
+                  placeholder="Search or add organization..."
                 />
               </div>
               <div>
