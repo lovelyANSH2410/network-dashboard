@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCountries } from "@/hooks/useCountries";
 import { Loader2, Save, X, ArrowLeft, Upload } from "lucide-react";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
+import CountrySelector from "@/components/CountrySelector";
 
 type OrganizationType = 'Hospital/Clinic' | 'HealthTech' | 'Pharmaceutical' | 'Biotech' | 'Medical Devices' | 'Consulting' | 'Public Health/Policy' | 'Health Insurance' | 'Academic/Research' | 'Startup' | 'VC' | 'Other';
 type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive' | 'Student' | 'Recent Graduate';
@@ -352,21 +353,18 @@ const Profile = () => {
               <div className="space-y-2">
                 <Label>Phone Number</Label>
                 <div className="flex gap-2">
-                  <Select
-                    value={profile.country_code || ""}
-                    onValueChange={(value) => setProfile({ ...profile, country_code: value })}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country.code} value={country.dialCode}>
-                          {country.flag} {country.dialCode}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <CountrySelector
+                   value={profile.country_code || ""}
+                   onValueChange={(value) =>
+                     setProfile({
+                       ...profile,
+                       country_code: value,
+                     })
+                   }
+                   countries={countries}
+                   placeholder="Code"
+                   className="w-40"
+                 />
                   <Input
                     placeholder="Phone number"
                     value={profile.phone || ""}
