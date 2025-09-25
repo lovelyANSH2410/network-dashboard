@@ -47,7 +47,15 @@ import {
   Save,
   X,
   UserPlus,
+  History,
 } from "lucide-react";
+import { 
+  addProfileChange, 
+  getChangedFields, 
+  getUserName,
+  ProfileChange 
+} from "@/utils/profileChangeTracker";
+import { ProfileChangeTimeline } from "@/components/ProfileChangeTimeline";
 import * as XLSX from "xlsx";
 import { Navigate, Link } from "react-router-dom";
 import Header from "@/components/Header";
@@ -105,6 +113,8 @@ export default function AdminDashboard() {
   console.log("countries", countries);
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [timelineProfile, setTimelineProfile] = useState<ProfileWithApproval | null>(null);
 
   const fetchProfiles = useCallback(async () => {
     try {
@@ -155,6 +165,23 @@ export default function AdminDashboard() {
       if (!profile) {
         throw new Error("Profile not found");
       }
+
+      // Track approval change
+      const changedFields = {
+        approval_status: {
+          oldValue: profile.approval_status,
+          newValue: 'approved'
+        }
+      };
+
+      const adminName = user?.email || 'Admin';
+      await addProfileChange(
+        profileUserId,
+        user?.id || '',
+        adminName,
+        changedFields,
+        'approve'
+      );
 
       // Approve the profile
       const { error } = await supabase.rpc("approve_user_profile", {
@@ -213,6 +240,27 @@ export default function AdminDashboard() {
       if (!profile) {
         throw new Error("Profile not found");
       }
+
+      // Track rejection change
+      const changedFields = {
+        approval_status: {
+          oldValue: profile.approval_status,
+          newValue: 'rejected'
+        },
+        rejection_reason: {
+          oldValue: profile.rejection_reason,
+          newValue: rejectionReason
+        }
+      };
+
+      const adminName = user?.email || 'Admin';
+      await addProfileChange(
+        profileUserId,
+        user?.id || '',
+        adminName,
+        changedFields,
+        'reject'
+      );
 
       // Reject the profile
       const { error } = await supabase.rpc("reject_user_profile", {
@@ -309,6 +357,11 @@ export default function AdminDashboard() {
     setIsEditDialogOpen(true);
   };
 
+  const openTimeline = (profile: ProfileWithApproval) => {
+    setTimelineProfile(profile);
+    setIsTimelineOpen(true);
+  };
+
   const handleEditProfile = async () => {
     if (!editingProfile) return;
 
@@ -324,13 +377,29 @@ export default function AdminDashboard() {
         .map((item) => item.trim())
         .filter((item) => item.length > 0);
 
+      const updatedData = {
+        ...editFormData,
+        interests,
+        skills,
+      };
+
+      // Track changes before updating
+      const changedFields = getChangedFields(editingProfile, updatedData);
+      
+      if (Object.keys(changedFields).length > 0) {
+        const adminName = user?.email || 'Admin';
+        await addProfileChange(
+          editingProfile.user_id,
+          user?.id || '',
+          adminName,
+          changedFields,
+          'admin_edit'
+        );
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          ...editFormData,
-          interests,
-          skills,
-        })
+        .update(updatedData)
         .eq("user_id", editingProfile.user_id);
 
       if (error) throw error;
@@ -339,7 +408,7 @@ export default function AdminDashboard() {
       setProfiles((prev) =>
         prev.map((profile) =>
           profile.user_id === editingProfile.user_id
-            ? { ...profile, ...editFormData, interests, skills }
+            ? { ...profile, ...updatedData }
             : profile
         )
       );
@@ -654,18 +723,19 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex flex-col gap-2 mt-4">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedProfile(profile)}
-                className="w-full"
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                View Details
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedProfile(profile)}
+                  className="flex-1"
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  View Details
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <div className="flex items-center gap-3">
@@ -923,6 +993,17 @@ export default function AdminDashboard() {
               )}
             </DialogContent>
           </Dialog>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openTimeline(profile)}
+              className="flex-1"
+            >
+              <History className="w-4 h-4 mr-1" />
+              Timeline
+            </Button>
+          </div>
 
           <Button
             variant="outline"
@@ -1732,6 +1813,16 @@ export default function AdminDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Profile Change Timeline */}
+      {timelineProfile && (
+        <ProfileChangeTimeline
+          profileUserId={timelineProfile.user_id}
+          profileName={`${timelineProfile.first_name} ${timelineProfile.last_name}`}
+          isOpen={isTimelineOpen}
+          onClose={() => setIsTimelineOpen(false)}
+        />
+      )}
     </div>
   );
 }

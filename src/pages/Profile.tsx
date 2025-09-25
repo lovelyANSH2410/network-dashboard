@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,8 +18,9 @@ import { useCountries } from "@/hooks/useCountries";
 import { Loader2, Save, X, ArrowLeft, Upload } from "lucide-react";
 import { OrganizationSelector } from "@/components/OrganizationSelector";
 import CountrySelector from "@/components/CountrySelector";
+import { addProfileChange, getChangedFields } from "@/utils/profileChangeTracker";
 
-type OrganizationType = 'Hospital/Clinic' | 'HealthTech' | 'Pharmaceutical' | 'Biotech' | 'Medical Devices' | 'Consulting' | 'Public Health/Policy' | 'Health Insurance' | 'Academic/Research' | 'Startup' | 'VC' | 'Other';
+type OrganizationType = 'Corporate' | 'Startup' | 'Non-Profit' | 'Government' | 'Consulting' | 'Education' | 'Healthcare' | 'Technology' | 'Finance' | 'Other';
 type ExperienceLevel = 'Entry Level' | 'Mid Level' | 'Senior Level' | 'Executive' | 'Student' | 'Recent Graduate';
 type ProfileStatus = 'Active' | 'Alumni' | 'Student' | 'Faculty' | 'Inactive';
 
@@ -65,21 +66,7 @@ const Profile = () => {
   const { toast } = useToast();
   const { countries, loading: countriesLoading } = useCountries();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUser(user);
-      await fetchProfile(user.id);
-    };
-
-    getUser();
-  }, [navigate]);
-
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -104,7 +91,21 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+      setUser(user);
+      await fetchProfile(user.id);
+    };
+
+    getUser();
+  }, [navigate, fetchProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,13 +123,29 @@ const Profile = () => {
         .map(item => item.trim())
         .filter(item => item.length > 0);
 
+      const updatedData = {
+        ...profile,
+        interests,
+        skills,
+      };
+
+      // Track changes before updating
+      const changedFields = getChangedFields(profile, updatedData);
+      
+      if (Object.keys(changedFields).length > 0) {
+        const userName = `${profile.first_name} ${profile.last_name}`.trim() || user.email || 'User';
+        await addProfileChange(
+          user.id,
+          user.id,
+          userName,
+          changedFields,
+          'update'
+        );
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          ...profile,
-          interests,
-          skills,
-        })
+        .update(updatedData)
         .eq("user_id", user.id);
 
       if (error) {
@@ -143,6 +160,8 @@ const Profile = () => {
           title: "Success",
           description: "Profile updated successfully",
         });
+        // Update local state
+        setProfile(updatedData);
       }
     } catch (error) {
       console.error("Error:", error);
