@@ -12,6 +12,7 @@ import Registration from "./pages/Registration";
 import WaitingApproval from "./pages/WaitingApproval";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import OrganizationMaster from "./pages/OrganizationMaster";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/waiting-approval" element={<WaitingApproval />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/organizations" element={<OrganizationMaster />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
