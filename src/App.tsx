@@ -54,7 +54,7 @@ const App = () => (
         <BrowserRouter>
           <div className="pb-16">
             <Routes>
-              <Route path="/" element={<ApprovedGuard><Index /></ApprovedGuard>} />
+              <Route path="/" element={<Index />} />
               <Route path="/profile" element={<ApprovedGuard><Profile /></ApprovedGuard>} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/registration" element={<Registration />} />
