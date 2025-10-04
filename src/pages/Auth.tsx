@@ -13,7 +13,7 @@ import { Loader2, GraduationCap } from "lucide-react";
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, underRegistration } = useAuth();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +27,12 @@ export default function Auth() {
     if (user) {
       navigate("/");
     }
-  }, [user, navigate]);
+    
+    // Redirect if under registration
+    if (underRegistration) {
+      navigate("/registration");
+    }
+  }, [user, navigate, underRegistration]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,6 +139,22 @@ export default function Auth() {
           variant: "destructive",
         });
       } else {
+        // Set under_registration to true for the new user
+        try {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ under_registration: true })
+            .eq('email', email);
+
+          if (updateError) {
+            console.error('Error setting under_registration:', updateError);
+            // Don't fail the signup if this fails
+          }
+        } catch (updateError) {
+          console.error('Error setting under_registration:', updateError);
+          // Don't fail the signup if this fails
+        }
+
         // Send notification to admin about new pending user
         try {
           const { error: emailError } = await supabase.functions.invoke('request-pending', {

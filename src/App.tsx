@@ -19,7 +19,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const ApprovedGuard = ({ children }: { children: JSX.Element }) => {
-  const { user, loading, isApproved } = useAuth();
+  const { user, loading, isApproved, underRegistration } = useAuth();
   if (loading) return children;
 
   // If user is on auth page, let them stay there
@@ -27,9 +27,24 @@ const ApprovedGuard = ({ children }: { children: JSX.Element }) => {
     return children;
   }
 
+  // If user is on registration page, let them stay there
+  if (window.location.pathname === "/registration") {
+    return children;
+  }
+
+  // If user is on waiting-approval page, let them stay there
+  if (window.location.pathname === "/waiting-approval") {
+    return children;
+  }
+
   // If no user, redirect to auth
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // If user is under registration process, redirect to registration
+  if (underRegistration) {
+    return <Navigate to="/registration" replace />;
   }
 
   // If user exists but profile is incomplete, redirect to registration
@@ -54,7 +69,7 @@ const App = () => (
         <BrowserRouter>
           <div className="pb-16">
             <Routes>
-              <Route path="/" element={<ApprovedGuard><Index /></ApprovedGuard>} />
+              <Route path="/" element={<Index />} />
               <Route path="/profile" element={<ApprovedGuard><Profile /></ApprovedGuard>} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/registration" element={<Registration />} />

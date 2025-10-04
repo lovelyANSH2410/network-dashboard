@@ -249,6 +249,17 @@ export default function Registration() {
         // Don't fail the registration if change tracking fails
       }
 
+      // Set under_registration to false after successful registration
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ under_registration: false })
+        .eq('user_id', user?.id);
+
+      if (updateError) {
+        console.error('Error setting under_registration to false:', updateError);
+        // Don't fail the registration if this fails
+      }
+
       await refreshUserData();
       
       toast({
