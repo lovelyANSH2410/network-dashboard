@@ -43,6 +43,7 @@ import {
   formatFileSize, 
   AVATAR_COMPRESSION_OPTIONS 
 } from "@/utils/imageCompression";
+import { Json } from "@/integrations/supabase/types";
 
 type OrganizationType =
   | "Corporate"
@@ -92,7 +93,7 @@ interface ChangeRecord {
   isAdmin: boolean;
 }
 
-interface Profile {
+export interface Profile {
   id: string;
   user_id: string;
   first_name: string | null;
@@ -100,6 +101,7 @@ interface Profile {
   email: string | null;
   phone: string | null;
   country_code: string | null;
+  gender: string | null;
   program: ProgramType | null;
   graduation_year: number | null;
   organization: string | null;
@@ -109,9 +111,12 @@ interface Profile {
   location: string | null;
   city: string | null;
   country: string | null;
+  pincode: string | null;
   linkedin_url: string | null;
   website_url: string | null;
   bio: string | null;
+  altEmail: string | null;
+  other_social_media_handles: string | null;
   interests: string[] | null;
   skills: string[] | null;
   status: ProfileStatus | null;
@@ -121,6 +126,10 @@ interface Profile {
   avatar_url: string | null;
   preferred_mode_of_communication?: PreferredCommunication[] | null;
   organizations?: Organization[] | null;
+  date_of_birth: string | null;
+  address: string | null;
+  willing_to_mentor?: "Yes" | "No" | "Maybe" | null;
+  areas_of_contribution?: string[] | null;
 }
 
 const Profile = () => {
@@ -132,14 +141,25 @@ const Profile = () => {
   const [uploading, setUploading] = useState(false);
   const [interestsInput, setInterestsInput] = useState("");
   const [skillsInput, setSkillsInput] = useState("");
-  const [preferredCommunication, setPreferredCommunication] = useState<
-    PreferredCommunication[]
-  >([]);
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  // Preferred communication and organizations are edited via profile state through ProfileSharedSections
   const navigate = useNavigate();
   const { toast } = useToast();
   const { countries, loading: countriesLoading } = useCountries();
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
+  
+  const handlePreferredCommunicationChange = (
+    value: PreferredCommunication,
+    checked: boolean
+  ) => {
+    setProfile((prev) => {
+      if (!prev) return prev;
+      const current = prev.preferred_mode_of_communication || [];
+      const updated = checked
+        ? [...current, value]
+        : current.filter((v) => v !== value);
+      return { ...prev, preferred_mode_of_communication: updated };
+    });
+  };
 
   const fetchProfile = useCallback(
     async (userId: string) => {
@@ -158,19 +178,11 @@ const Profile = () => {
             variant: "destructive",
           });
         } else {
-          setProfile(data as Profile);
-          setEditingProfile(data as Profile);
+          setProfile(data as unknown as Profile);
+          setEditingProfile(data as unknown as Profile);
           setInterestsInput(data.interests?.join(", ") || "");
           setSkillsInput(data.skills?.join(", ") || "");
-          setPreferredCommunication(
-            ((data as Record<string, unknown>)
-              .preferred_mode_of_communication as PreferredCommunication[]) ||
-              []
-          );
-          setOrganizations(
-            ((data as Record<string, unknown>)
-              .organizations as Organization[]) || []
-          );
+          // preferred_mode_of_communication and organizations are held in profile/editingProfile directly
         }
       } catch (error) {
         console.error("Error:", error);
@@ -213,50 +225,89 @@ const Profile = () => {
         .map((item) => item.trim())
         .filter((item) => item.length > 0);
 
-      const updatedData = {
-        ...profile,
+      const updatedDataProfile: Profile = {
+        ...(profile as Profile),
         interests,
         skills,
-        preferred_mode_of_communication: preferredCommunication,
-        organizations: organizations,
+        preferred_mode_of_communication:
+          (profile as Profile).preferred_mode_of_communication || [],
+        organizations: (profile as Profile).organizations || [],
+        willing_to_mentor: (profile as Profile).willing_to_mentor ?? null,
+        areas_of_contribution: (profile as Profile).areas_of_contribution || [],
       };
 
-      // Track changes before updating
-      const changedFields = getChangedFields(editingProfile as unknown as Record<string, unknown>, updatedData as unknown as Record<string, unknown>);
+      // If normal user, submit a profile update request instead of direct update
+      const isNormalUser = authUser?.role !== "admin";
 
-      if (Object.keys(changedFields).length > 0) {
-        const userName =
-          `${profile.first_name} ${profile.last_name}`.trim() ||
-          user.email ||
-          "User";
-        await addProfileChange(
-          user.id,
-          user.id,
-          userName,
-          changedFields,
-          "update"
+      if (isNormalUser) {
+        // Build a minimal PATCH-like payload containing only changed keys
+        const changed = getChangedFields(
+          editingProfile as unknown as Record<string, unknown>,
+          updatedDataProfile as unknown as Record<string, unknown>
         );
-      }
 
-      const { error } = await supabase
-        .from("profiles")
-        .update(updatedData)
-        .eq("user_id", user.id);
-
-      if (error) {
-        console.error("Error updating profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update profile",
-          variant: "destructive",
+        const diffPayload: Record<string, unknown> = {};
+        Object.entries(changed).forEach(([key, change]) => {
+          diffPayload[key] = (change as { oldValue: unknown; newValue: unknown }).newValue;
         });
+
+        const payload: Json = diffPayload as unknown as Json;
+        const { error: reqError } = await supabase.rpc(
+          "submit_profile_update_request",
+          { payload }
+        );
+
+        if (reqError) {
+          console.error("Error submitting update request:", reqError);
+          toast({
+            title: "Error",
+            description: "Failed to submit update request",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Update request submitted",
+            description: "An admin will review your changes shortly.",
+          });
+        }
       } else {
-        toast({
-          title: "Success",
-          description: "Profile updated successfully",
-        });
-        // Update local state
-        setProfile(updatedData);
+        // Admins can update directly and track timeline as admin_edit
+        const changedFields = getChangedFields(
+          editingProfile as unknown as Record<string, unknown>,
+          updatedDataProfile as unknown as Record<string, unknown>
+        );
+
+        if (Object.keys(changedFields).length > 0) {
+          const adminName = authUser?.email || "Admin";
+          await addProfileChange(
+            user.id,
+            user.id,
+            adminName,
+            changedFields,
+            "admin_edit"
+          );
+        }
+
+        const { error } = await supabase
+          .from("profiles")
+          .update(updatedDataProfile as unknown as Record<string, unknown>)
+          .eq("user_id", user.id);
+
+        if (error) {
+          console.error("Error updating profile:", error);
+          toast({
+            title: "Error",
+            description: "Failed to update profile",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Profile updated successfully",
+          });
+          // Update local state
+          setProfile(updatedDataProfile);
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -281,44 +332,9 @@ const Profile = () => {
     setSkillsInput(newSkills.join(", "));
   };
 
-  const handlePreferredCommunicationChange = (
-    value: PreferredCommunication,
-    checked: boolean
-  ) => {
-    if (checked) {
-      setPreferredCommunication((prev) => [...prev, value]);
-    } else {
-      setPreferredCommunication((prev) =>
-        prev.filter((item) => item !== value)
-      );
-    }
-  };
+  // Preferred communication toggling is handled inside ProfileSharedSections via onFormDataChange
 
-  const addOrganization = () => {
-    const newOrg: Organization = {
-      id: Date.now().toString(),
-      currentOrg: "",
-      orgType: "",
-      experience: "",
-      description: "",
-      role: "",
-    };
-    setOrganizations((prev) => [...prev, newOrg]);
-  };
-
-  const updateOrganization = (
-    id: string,
-    field: keyof Organization,
-    value: string
-  ) => {
-    setOrganizations((prev) =>
-      prev.map((org) => (org.id === id ? { ...org, [field]: value } : org))
-    );
-  };
-
-  const removeOrganization = (id: string) => {
-    setOrganizations((prev) => prev.filter((org) => org.id !== id));
-  };
+  // Organization add/update/remove handled inside ProfileSharedSections via onFormDataChange
 
 
   const handleAvatarUpload = async (
@@ -510,6 +526,7 @@ const Profile = () => {
               ...(newData as Partial<Profile>),
             }))
           }
+          handlePreferredCommunicationChange={handlePreferredCommunicationChange}
           skillsInput={skillsInput}
           onSkillsInputChange={setSkillsInput}
           interestsInput={interestsInput}
