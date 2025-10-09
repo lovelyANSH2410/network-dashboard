@@ -1464,30 +1464,38 @@ export default function AdminDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All organization types</SelectItem>
-                    <SelectItem value="Hospital/Clinic">
-                      Hospital/Clinic
-                    </SelectItem>
-                    <SelectItem value="HealthTech">HealthTech</SelectItem>
-                    <SelectItem value="Pharmaceutical">
-                      Pharmaceutical
-                    </SelectItem>
-                    <SelectItem value="Biotech">Biotech</SelectItem>
-                    <SelectItem value="Medical Devices">
-                      Medical Devices
-                    </SelectItem>
-                    <SelectItem value="Consulting">Consulting</SelectItem>
-                    <SelectItem value="Public Health/Policy">
-                      Public Health/Policy
-                    </SelectItem>
-                    <SelectItem value="Health Insurance">
-                      Health Insurance
-                    </SelectItem>
-                    <SelectItem value="Academic/Research">
-                      Academic/Research
-                    </SelectItem>
-                    <SelectItem value="Startup">Startup</SelectItem>
-                    <SelectItem value="VC">VC</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Hospital / Clinic">
+                        Hospital / Clinic
+                      </SelectItem>
+                      <SelectItem value="HealthTech Company">
+                        HealthTech Company
+                      </SelectItem>
+                      <SelectItem value="Pharmaceutical">
+                        Pharmaceutical
+                      </SelectItem>
+                      <SelectItem value="Biotech">Biotech</SelectItem>
+                      <SelectItem value="Medical Devices">
+                        Medical Devices
+                      </SelectItem>
+                      <SelectItem value="Consulting Firm">
+                        Consulting Firm
+                      </SelectItem>
+                      <SelectItem value="Public Health / Policy Organization">
+                        Public Health / Policy Organization
+                      </SelectItem>
+                      <SelectItem value="Health Insurance">
+                        Health Insurance
+                      </SelectItem>
+                      <SelectItem value="Academic / Research Institution">
+                        Academic / Research Institution
+                      </SelectItem>
+                      <SelectItem value="Startup / Entrepreneurial Venture">
+                        Startup / Entrepreneurial Venture
+                      </SelectItem>
+                      <SelectItem value="Investment / Venture Capital">
+                        Investment / Venture Capital
+                      </SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
