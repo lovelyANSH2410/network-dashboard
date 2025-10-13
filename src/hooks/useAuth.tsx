@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -21,8 +21,8 @@ interface AuthContextType {
   isAdmin: boolean;
   isApproved: boolean;
   underRegistration: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: unknown | null }>;
+  signUp: (email: string, password: string, userData?: Record<string, unknown>) => Promise<{ error: unknown | null }>;
   signOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
 }
@@ -34,6 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // Inactivity/session-timeout management
+  const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+  const WARNING_OFFSET_MS = 60 * 1000; // 1 minute before timeout
+  const warningTimeoutRef = useRef<number | null>(null);
+  const signoutTimeoutRef = useRef<number | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+  const hasShownWarningRef = useRef<boolean>(false);
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -79,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast({
       title: "Success",
       description: "User data refreshed successfully",
-      variant: "success",
+      variant: "default",
     });
   };
 
@@ -161,12 +169,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       return { error: null };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { error };
     }
   };
 
-  const signUp = async (email: string, password: string, userData: any = {}) => {
+  const signUp = async (email: string, password: string, userData: Record<string, unknown> = {}) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -179,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       return { error: null };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { error };
     }
   };
@@ -189,6 +197,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Force navigation to auth page after sign out
     window.location.href = '/auth';
   };
+
+  // Reset idle timers based on current time and configured thresholds
+  const resetIdleTimers = useCallback(() => {
+    // Only enforce when a session exists
+    if (!session?.user) return;
+
+    lastActivityRef.current = Date.now();
+    hasShownWarningRef.current = false;
+
+    if (warningTimeoutRef.current) {
+      window.clearTimeout(warningTimeoutRef.current);
+      warningTimeoutRef.current = null;
+    }
+    if (signoutTimeoutRef.current) {
+      window.clearTimeout(signoutTimeoutRef.current);
+      signoutTimeoutRef.current = null;
+    }
+
+    // Schedule warning and auto sign-out
+    warningTimeoutRef.current = window.setTimeout(() => {
+      // Avoid duplicate warnings
+      if (!hasShownWarningRef.current) {
+        hasShownWarningRef.current = true;
+        toast({
+          title: 'You will be signed out soon',
+          description: 'Due to inactivity, you will be signed out in 1 minute.',
+        });
+      }
+    }, Math.max(0, IDLE_TIMEOUT_MS - WARNING_OFFSET_MS));
+
+    signoutTimeoutRef.current = window.setTimeout(async () => {
+      await signOut();
+    }, IDLE_TIMEOUT_MS);
+  }, [session?.user, toast, IDLE_TIMEOUT_MS, WARNING_OFFSET_MS]);
+
+  // Global activity listeners to reset the idle timer
+  useEffect(() => {
+    const onActivity = () => resetIdleTimers();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        resetIdleTimers();
+      }
+    };
+
+    window.addEventListener('mousemove', onActivity);
+    window.addEventListener('mousedown', onActivity);
+    window.addEventListener('keydown', onActivity);
+    window.addEventListener('scroll', onActivity, { passive: true });
+    window.addEventListener('touchstart', onActivity, { passive: true });
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('mousemove', onActivity);
+      window.removeEventListener('mousedown', onActivity);
+      window.removeEventListener('keydown', onActivity);
+      window.removeEventListener('scroll', onActivity);
+      window.removeEventListener('touchstart', onActivity);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [session?.user, resetIdleTimers]);
+
+  // Whenever session/user becomes available or changes, (re)start timers
+  useEffect(() => {
+    if (session?.user) {
+      resetIdleTimers();
+    } else {
+      if (warningTimeoutRef.current) window.clearTimeout(warningTimeoutRef.current);
+      if (signoutTimeoutRef.current) window.clearTimeout(signoutTimeoutRef.current);
+      warningTimeoutRef.current = null;
+      signoutTimeoutRef.current = null;
+    }
+  }, [session?.user, resetIdleTimers]);
 
   const isAdmin = user?.role === 'admin';
   const isApproved = user?.approvalStatus === 'approved';
