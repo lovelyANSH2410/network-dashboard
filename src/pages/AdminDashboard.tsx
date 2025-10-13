@@ -1670,6 +1670,8 @@ export default function AdminDashboard() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="text-sm font-medium">Request ID: {req.id}</div>
+                                <div className="text-sm font-muted-foreground">Name: {profile?.first_name} {profile?.last_name}</div>
+                                <div className="text-sm font-muted-foreground">Email: {profile?.email}</div>
                                 <div className="text-xs text-muted-foreground">
                                   Submitted: {new Date(req.created_at).toLocaleString()} | Status: {req.status}
                                 </div>
