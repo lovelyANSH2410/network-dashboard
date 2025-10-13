@@ -30,6 +30,14 @@ export default function Auth() {
   const [activeTab, setActiveTab] = useState("signin");
   const [showPassword, setShowPassword] = useState(false);
 
+  
+  useEffect(() => {
+    // Redirect if already authenticated
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -50,7 +58,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Error",
-          description: error.message,
+          description: typeof error === 'object' && error !== null && 'message' in (error as Record<string, unknown>) ? String((error as { message?: unknown }).message) : 'Sign in failed',
           variant: "destructive",
         });
       } else {
@@ -58,6 +66,8 @@ export default function Auth() {
           title: "Success",
           description: "Signed in successfully",
         });
+        // Redirect to the landing route; it will route to dashboard/admin/registration based on status
+        navigate("/");
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -133,7 +143,7 @@ export default function Auth() {
       if (error) {
         toast({
           title: "Error",
-          description: error.message,
+          description: typeof error === 'object' && error !== null && 'message' in (error as Record<string, unknown>) ? String((error as { message?: unknown }).message) : 'Sign up failed',
           variant: "destructive",
         });
       } else {
