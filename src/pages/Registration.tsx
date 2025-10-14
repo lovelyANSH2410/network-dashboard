@@ -471,6 +471,7 @@ export default function Registration() {
       return;
     }
 
+    
     setUploading(true);
     try {
       const compressionResult = await compressImage(
