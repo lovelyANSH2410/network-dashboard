@@ -24,25 +24,25 @@ export default function Header({ showUserInfo = false, showSignOut = false }: He
   };
 
   return (
-    <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-lg">
+    <header className="bg-gradient-to-r from-purple-700 to-indigo-900 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <GraduationCap className="h-10 w-10 text-blue-200" />
+              <GraduationCap className="h-10 w-10 text-purple-200" />
               <div>
-                <h1 className="text-2xl font-bold">IIMA Healthcare SIG</h1>
-                <p className="text-sm text-blue-200">Alumni Management System</p>
+                <h1 className="text-2xl font-bold">Alumni Network</h1>
+                <p className="text-sm text-purple-200">Professional Network Platform</p>
               </div>
             </div>
           </div>
 
           {showUserInfo && user && (
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 text-blue-100">
+              <div className="flex items-center space-x-3 text-purple-100">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile?.avatar_url || ''} alt="Profile" />
-                  <AvatarFallback className="text-xs bg-blue-600 text-white">
+                  <AvatarFallback className="text-xs bg-purple-600 text-white">
                     {getInitials(profile?.first_name, profile?.last_name)}
                   </AvatarFallback>
                 </Avatar>
@@ -55,7 +55,7 @@ export default function Header({ showUserInfo = false, showSignOut = false }: He
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
                     >
                       <User className="h-4 w-4 mr-2" />
                       Account

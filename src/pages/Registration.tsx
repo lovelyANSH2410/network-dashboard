@@ -592,7 +592,7 @@ export default function Registration() {
                     />
                     <div>
                       <Label htmlFor="consent-directory" className="leading-6">
-                        Consent to Include Information in the IIMA Healthcare Directory
+                        Consent to Include Information in the Alumni Directory
                       </Label>
                       {errors.is_public && (
                         <p className="text-sm text-red-500 mt-1">{errors.is_public}</p>

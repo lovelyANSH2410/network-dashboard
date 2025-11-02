@@ -17,36 +17,36 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 215 20% 14%;
 
-    --primary: 210 100% 30%;
+    --primary: 262 80% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 146 70% 85%;
-    --secondary-foreground: 146 50% 20%;
+    --secondary: 280 70% 85%;
+    --secondary-foreground: 262 50% 20%;
 
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 262 20% 96%;
+    --muted-foreground: 262 16% 47%;
 
-    --accent: 146 60% 50%;
+    --accent: 280 60% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 89%;
-    --input: 210 20% 95%;
-    --ring: 210 100% 30%;
+    --border: 262 20% 89%;
+    --input: 262 20% 95%;
+    --ring: 262 80% 50%;
 
-    /* Custom healthcare theme colors */
-    --healthcare-primary: 210 100% 30%;
-    --healthcare-secondary: 146 60% 50%;
-    --healthcare-accent: 202 100% 50%;
-    --healthcare-surface: 210 20% 98%;
-    --healthcare-text: 215 20% 14%;
+    /* Custom network theme colors */
+    --network-primary: 262 80% 50%;
+    --network-secondary: 280 60% 50%;
+    --network-accent: 240 100% 50%;
+    --network-surface: 262 20% 98%;
+    --network-text: 262 20% 14%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(210 100% 30%) 0%, hsl(202 100% 50%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(146 60% 50%) 0%, hsl(146 70% 85%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 20% 98%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(262 80% 50%) 0%, hsl(240 100% 50%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(280 60% 50%) 0%, hsl(280 70% 85%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(262 20% 98%) 100%);
 
     --radius: 0.5rem;
 
@@ -77,36 +77,36 @@ All colors MUST be HSL.
     --popover: 215 30% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 100% 50%;
-    --primary-foreground: 215 30% 6%;
+    --primary: 262 80% 65%;
+    --primary-foreground: 262 30% 6%;
 
-    --secondary: 146 50% 25%;
-    --secondary-foreground: 146 70% 85%;
+    --secondary: 280 50% 30%;
+    --secondary-foreground: 280 70% 85%;
 
-    --muted: 215 25% 15%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 262 25% 15%;
+    --muted-foreground: 262 20% 65%;
 
-    --accent: 146 50% 45%;
-    --accent-foreground: 215 30% 6%;
+    --accent: 280 50% 55%;
+    --accent-foreground: 262 30% 6%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 262 40% 98%;
 
-    --border: 215 25% 20%;
-    --input: 215 25% 20%;
-    --ring: 210 100% 50%;
+    --border: 262 25% 20%;
+    --input: 262 25% 20%;
+    --ring: 262 80% 65%;
 
-    /* Dark mode healthcare colors */
-    --healthcare-primary: 210 100% 50%;
-    --healthcare-secondary: 146 50% 45%;
-    --healthcare-accent: 202 100% 60%;
-    --healthcare-surface: 215 25% 12%;
-    --healthcare-text: 210 40% 98%;
+    /* Dark mode network colors */
+    --network-primary: 262 80% 65%;
+    --network-secondary: 280 50% 55%;
+    --network-accent: 240 100% 60%;
+    --network-surface: 262 25% 12%;
+    --network-text: 262 40% 98%;
     
     /* Dark gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(210 100% 50%) 0%, hsl(202 100% 60%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(146 50% 45%) 0%, hsl(146 50% 25%) 100%);
-    --gradient-surface: linear-gradient(180deg, hsl(215 30% 8%) 0%, hsl(215 25% 12%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(262 80% 65%) 0%, hsl(240 100% 60%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(280 50% 55%) 0%, hsl(280 50% 30%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(262 30% 8%) 0%, hsl(262 25% 12%) 100%);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

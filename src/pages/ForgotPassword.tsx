@@ -78,7 +78,7 @@ export default function ForgotPassword() {
             <div className="p-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
               <GraduationCap className="h-8 w-8 text-primary" />
             </div>
-            <span>IIMA Healthcare SIG Members Portal</span>
+            <span>Alumni Network Portal</span>
           </button>
         </div>
 

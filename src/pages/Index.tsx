@@ -72,12 +72,12 @@ export default function Index() {
 
   // Landing page for unauthenticated users
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
       <header className="border-b bg-white/80 backdrop-blur-sm">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center space-x-2">
             <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-bold">IIMA Healthcare SIG</h1>
+            <h1 className="text-xl font-bold">Alumni Network</h1>
           </div>
           <Button onClick={() => navigate("/auth")}>Sign In</Button>
         </div>
@@ -86,11 +86,11 @@ export default function Index() {
       <main className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            IIMA Healthcare SIG Member Portal
+            Alumni Network Portal
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Platform for IIM Ahmedabad Alumni in Healthcare domain to connect
-            and grow your network with fellow members
+            Connect and grow your professional network with fellow alumni members
+            across various industries and domains
           </p>
           <div className="flex gap-4 justify-center">
             <Button size="lg" onClick={() => navigate("/auth")}>
@@ -106,11 +106,11 @@ export default function Index() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
           <Card>
             <CardHeader>
-              <Users className="h-12 w-12 text-blue-600 mb-4" />
+              <Users className="h-12 w-12 text-purple-600 mb-4" />
               <CardTitle>Professional Network</CardTitle>
               <CardDescription>
-                Connect with IIM Ahmedabad alumni and professionals in
-                Healthcare domain{" "}
+                Connect with alumni and professionals across various
+                industries and domains{" "}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -145,7 +145,7 @@ export default function Index() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-4">
-              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
                 1
               </div>
               <h3 className="text-xl font-semibold">Sign Up</h3>
