@@ -51,17 +51,19 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
   const [newOrgDomain, setNewOrgDomain] = useState('');
   const [adding, setAdding] = useState(false);
   const { toast } = useToast();
+  const token = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   const searchOrganizations = async (term: string) => {
     setLoading(true);
     try {
-      const url = `https://ndytoqziowlraazwokgt.supabase.co/functions/v1/organizations-search${term ? `?q=${encodeURIComponent(term)}` : ''}`;
+      const url = `${supabaseUrl}/functions/v1/organizations-search${term ? `?q=${encodeURIComponent(term)}` : ''}`;
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5keXRvcXppb3dscmFhendva2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxOTU5MjcsImV4cCI6MjA3Mzc3MTkyN30.7YakxnScWmMDHPrPx2MCCaIZX4CFq9L3i9w6VMA9La0`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5keXRvcXppb3dscmFhendva2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxOTU5MjcsImV4cCI6MjA3Mzc3MTkyN30.7YakxnScWmMDHPrPx2MCCaIZX4CFq9L3i9w6VMA9La0',
+          'Authorization': `Bearer ${token}`,
+          'apikey': token,
         },
       });
 

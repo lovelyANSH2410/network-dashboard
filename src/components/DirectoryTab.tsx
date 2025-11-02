@@ -38,7 +38,7 @@ export default function DirectoryTab({ onMemberDetails }: DirectoryTabProps) {
   const { toast } = useToast();
   const { user, isAdmin } = useAuth();
   const { isStarred, toggleStar, fetchStarredProfiles } = useStarredProfiles();
-
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const toggleCardExpansion = (memberId: string) => {
     setExpandedCards(prev => {
       const newSet = new Set(prev);
@@ -62,7 +62,7 @@ export default function DirectoryTab({ onMemberDetails }: DirectoryTabProps) {
         throw new Error('No access token');
       }
 
-      const response = await fetch(`https://ndytoqziowlraazwokgt.supabase.co/functions/v1/directory-get`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/directory-get`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -104,7 +104,7 @@ export default function DirectoryTab({ onMemberDetails }: DirectoryTabProps) {
         throw new Error('No access token');
       }
 
-      const response = await fetch(`https://ndytoqziowlraazwokgt.supabase.co/functions/v1/directory-remove/${memberId}`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/directory-remove/${memberId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
